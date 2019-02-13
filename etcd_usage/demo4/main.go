@@ -47,6 +47,7 @@ func main() {
 		fmt.Println("LEASE GRANT ERROR:", err)
 		return
 	}
+
 	fmt.Println("LEASE GRANT SUCCESS:", leaseGrantRes.ID)
 
 	//put key 与租约绑定
@@ -60,6 +61,8 @@ func main() {
 		fmt.Println("LEASE KEEP ALIVE ERROR:", err)
 		return
 	}
+	defer lease.Revoke(context.TODO(), leaseGrantRes.ID)
+	defer cancelFunc()
 
 	//接收续约的状态
 	//leaseKeepRes=leaseKeepRes
