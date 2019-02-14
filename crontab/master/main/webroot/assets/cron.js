@@ -114,6 +114,7 @@ CRON.prototype={
             })
         })
     },
+
     showTips:function(msg,callback,level){
         level=(level===undefined||level===null||level=="")?"alert-success":("alert-"+level);
         $('.JS-alert').addClass(level).html(msg).fadeIn(500,function(){
@@ -141,7 +142,6 @@ Api.prototype={
     kill:function(jobName,successCallback,errCallback){
         this._request("kill",{"name":jobName},successCallback,errCallback)
     },
-
     _request:function(api,data,successCallback,errCallback){
         var context=this;
         $.ajax({
@@ -158,6 +158,4 @@ Api.prototype={
             }
         });
     }
-
-
 }
