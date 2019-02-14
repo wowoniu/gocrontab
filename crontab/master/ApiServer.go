@@ -54,19 +54,19 @@ func handleJobSave(w http.ResponseWriter, r *http.Request) {
 		oldJob *common.Job
 	)
 	if err = r.ParseForm(); err != nil {
-		output(w, 1000, "无效的POST请求", nil)
+		output(w, 1000, "无效的POST请求:"+err.Error(), nil)
 		return
 	}
 	jobStr = r.PostForm.Get("job")
 	//josn反序列化
 	if err = json.Unmarshal([]byte(jobStr), &job); err != nil {
-		output(w, 1001, "无效的job配置", nil)
+		output(w, 1001, "无效的job配置:"+err.Error(), nil)
 		return
 	}
 	//保存任务到etcd
 	if oldJob, err = G_jobmgr.SaveJob(&job); err != nil {
 		//保存失败 TODO
-		output(w, 1003, "任务报错失败", nil)
+		output(w, 1003, "任务保存失败:"+err.Error(), nil)
 		return
 	}
 	//保存成功
