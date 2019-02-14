@@ -117,9 +117,9 @@ CRON.prototype={
 
     showTips:function(msg,callback,level){
         level=(level===undefined||level===null||level=="")?"alert-success":("alert-"+level);
-        $('.JS-alert').addClass(level).html(msg).fadeIn(500,function(){
+        $('.JS-alert').addClass(level).html(msg).fadeIn(1100,function(){
             if(callback)callback()
-            $('.alert-danger').fadeOut(500).hide().removeClass(level);
+            $('.JS-alert').fadeOut(1200).removeClass(level);
         })
 
     }
