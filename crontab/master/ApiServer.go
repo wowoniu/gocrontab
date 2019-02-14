@@ -52,7 +52,7 @@ func InitApiServer() (err error) {
 
 //任务保存接口
 func handleJobSave(w http.ResponseWriter, r *http.Request) {
-	//POST job={"name":"job1","command":"echo 1","cron_expr":"* * * * *"}
+	//POST job={"name":"job1","command":"echo 1","cron_expr":"* * * * *","desc":"任务描述"}
 	var (
 		err    error
 		jobStr string

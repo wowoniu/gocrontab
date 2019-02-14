@@ -5,6 +5,7 @@ type Job struct {
 	Name     string `json:"name"`
 	Command  string `json:"command"`
 	CronExpr string `json:"cron_expr"`
+	Desc     string `json:"desc"`
 }
 
 //接口响应

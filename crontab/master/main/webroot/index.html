@@ -32,6 +32,7 @@
                                 <th>任务名称</th>
                                 <th>命令</th>
                                 <th>表达式</th>
+                                <th>描述</th>
                                 <th>操作</th>
                             </tr>
                             </thead>
@@ -72,6 +73,10 @@
                             <label for="edit-name">cron表达式</label>
                             <input type="text" class="form-control" id="edit-cronexpr" placeholder="cron表达式">
                         </div>
+                        <div class="form-group">
+                            <label for="edit-name">任务描述</label>
+                            <textarea class="form-control" id="edit-desc"></textarea>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -88,8 +93,7 @@
 
     <script>
         $(function () {
-            var cronObj=new CRON();
-            cronObj.renderList()
+            new CRON().renderList()
         });
     </script>
 </body>

@@ -17,13 +17,14 @@ CRON.prototype={
                 html+="<tr data-name='"+records[i]["name"]+"'><td>"+records[i]['name']+"</td>"+
                     "<td>"+records[i]['command']+"</td>"+
                     "<td>"+records[i]['cron_expr']+"</td>"+
+                    "<td>"+records[i]['desc']+"</td>"+
                     "<td>"+
                     "<div class='btn-toolbar'>"+
                     "    <button class=\"btn btn-info JS-job-edit \">编辑</button>"+
                     "    <button class=\"btn btn-warning JS-job-kill \">强杀</button>"+
                     "    <button class=\"btn btn-danger JS-job-del \">删除</button>"+
                     "   </div>"+
-                    "    </td></tr>";
+                    "</td></tr>";
             }
             $('.JS-job-list').html(html)
             context.onEdit()
@@ -36,13 +37,16 @@ CRON.prototype={
         var context=this;
         $('.JS-job-add').click(function(){
             $('.JS-job-title').html("新增任务");
+            $('#edit-modal').find('input').val("")
+            $('#edit-modal').find('textarea').val("")
             $('#edit-modal').modal("show")
             $('#JS-edit-save').off('click').click(function () {
                     //保存
                     var job={
                         "name":$('#edit-name').val(),
                         "command":$('#edit-command').val(),
-                        "cron_expr":$('#edit-cronexpr').val()
+                        "cron_expr":$('#edit-cronexpr').val(),
+                        "desc":$('#edit-desc').val()
                     }
                     context.api.save({"job":JSON.stringify(job)},function(data){
                         context.showTips("新增成功",function(){
@@ -66,6 +70,7 @@ CRON.prototype={
             $('#edit-old-name').val($(this).parents('tr').find('td').eq(0).html())
             $('#edit-command').val($(this).parents('tr').find('td').eq(1).html())
             $('#edit-cronexpr').val($(this).parents('tr').find('td').eq(2).html())
+            $('#edit-desc').val($(this).parents('tr').find('td').eq(3).html())
             $('.JS-job-title').html("编辑任务");
             $('#edit-modal').modal("show")
             $('#JS-edit-save').off('click').click(function () {
@@ -73,7 +78,8 @@ CRON.prototype={
                 var job={
                     "name":$('#edit-name').val(),
                     "command":$('#edit-command').val(),
-                    "cron_expr":$('#edit-cronexpr').val()
+                    "cron_expr":$('#edit-cronexpr').val(),
+                    "desc":$('#edit-desc').val()
                 }
                 context.api.save({"job":JSON.stringify(job)},function(data){
                     context.showTips("编辑成功",function(){
