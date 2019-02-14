@@ -26,6 +26,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/save", handleJobSave)
 	mux.HandleFunc("/job/delete", handleJobDelete)
 	mux.HandleFunc("/job/list", handleJobList)
+	mux.HandleFunc("/job/kill", handleJobKill)
 	//监听设置
 	if listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort)); err != nil {
 		return
@@ -112,6 +113,21 @@ func handleJobList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output(w, 0, "success", jobList)
+}
+
+//强杀任务
+func handleJobKill(w http.ResponseWriter, r *http.Request) {
+	var (
+		jobName string
+		err     error
+	)
+	r.ParseForm()
+	jobName = r.PostForm.Get("name")
+	if err = G_jobmgr.KillJob(jobName); err != nil {
+		output(w, 13001, "设置强杀失败:"+err.Error(), nil)
+		return
+	}
+	output(w, 0, "success", nil)
 }
 
 func output(w http.ResponseWriter, errno int, msg string, data interface{}) {

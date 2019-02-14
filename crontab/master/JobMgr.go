@@ -112,7 +112,7 @@ func (this *JobMgr) ListJobs() (jobList []*common.Job, err error) {
 	var (
 		dirKey  string
 		getRes  *clientv3.GetResponse
-		job     common.Job
+		job     *common.Job
 		jobJson *mvccpb.KeyValue
 	)
 	dirKey = common.JOB_SAVE_DIR
@@ -122,10 +122,28 @@ func (this *JobMgr) ListJobs() (jobList []*common.Job, err error) {
 
 	jobList = make([]*common.Job, 0)
 	for _, jobJson = range getRes.Kvs {
-		if err = json.Unmarshal(jobJson.Value, &job); err != nil {
+		job = &common.Job{}
+		if err = json.Unmarshal(jobJson.Value, job); err != nil {
 			continue
 		}
-		jobList = append(jobList, &job)
+		jobList = append(jobList, job)
 	}
+	return
+}
+
+func (this *JobMgr) KillJob(jobName string) (err error) {
+	var (
+		killerKey     string
+		leaseGrantRes *clientv3.LeaseGrantResponse
+	)
+	killerKey = common.JOB_KILL_DIR + jobName
+	//创建一个1秒过期的租约
+	if leaseGrantRes, err = this.Lease.Grant(context.TODO(), 1); err != nil {
+		//租约创建失败
+		return
+	}
+	//PUT
+	_, err = this.Kv.Put(context.TODO(), killerKey, "", clientv3.WithLease(leaseGrantRes.ID))
+
 	return
 }
