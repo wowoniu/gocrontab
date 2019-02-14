@@ -24,6 +24,8 @@ func InitApiServer() (err error) {
 	//设置路由
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save", handleJobSave)
+	mux.HandleFunc("/job/delete", handleJobDelete)
+	mux.HandleFunc("/job/list", handleJobList)
 	//监听设置
 	if listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort)); err != nil {
 		return
@@ -71,8 +73,45 @@ func handleJobSave(w http.ResponseWriter, r *http.Request) {
 	}
 	//保存成功
 
-	oldJob = oldJob
+	//oldJob = oldJob
+	output(w, 0, "success", oldJob)
+	return
+}
 
+//任务删除接口
+func handleJobDelete(w http.ResponseWriter, r *http.Request) {
+	//POST name=job1
+	var (
+		err     error
+		jobName string
+		oldJob  *common.Job
+	)
+	if err = r.ParseForm(); err != nil {
+		output(w, 1000, "无效的POST请求:"+err.Error(), nil)
+		return
+	}
+	jobName = r.PostForm.Get("name")
+
+	//删除任务
+	if oldJob, err = G_jobmgr.DeleteJob(jobName); err != nil {
+		output(w, 1101, "删除失败:"+err.Error(), nil)
+		return
+	}
+	output(w, 0, "success", oldJob)
+}
+
+//获取所有任务列表
+func handleJobList(w http.ResponseWriter, r *http.Request) {
+	var (
+		jobList []*common.Job
+		err     error
+	)
+	if jobList, err = G_jobmgr.ListJobs(); err != nil {
+		output(w, 12001, "列表获取失败:"+err.Error(), nil)
+		return
+	}
+
+	output(w, 0, "success", jobList)
 }
 
 func output(w http.ResponseWriter, errno int, msg string, data interface{}) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 	"gocrontab/crontab/common"
 	"time"
 )
@@ -65,7 +66,7 @@ func (this *JobMgr) SaveJob(job *common.Job) (oldJob *common.Job, err error) {
 		putRes    *clientv3.PutResponse
 		oldJobObj common.Job
 	)
-	jobKey = "/cron/jobs/" + job.Name
+	jobKey = common.JOB_SAVE_DIR + job.Name
 	if jobValue, err = json.Marshal(job); err != nil {
 		return
 	}
@@ -81,6 +82,50 @@ func (this *JobMgr) SaveJob(job *common.Job) (oldJob *common.Job, err error) {
 			return
 		}
 		oldJob = &oldJobObj
+	}
+	return
+}
+
+func (this *JobMgr) DeleteJob(jobName string) (oldJob *common.Job, err error) {
+	var (
+		delRes    *clientv3.DeleteResponse
+		jobKey    string
+		oldJobObj common.Job
+	)
+	jobKey = common.JOB_SAVE_DIR + jobName
+	if delRes, err = this.Kv.Delete(context.TODO(), jobKey, clientv3.WithPrevKV()); err != nil {
+		//删除失败
+		return
+	}
+	if len(delRes.PrevKvs) != 0 {
+		if err = json.Unmarshal(delRes.PrevKvs[0].Value, &oldJobObj); err != nil {
+			//反序列化失败 不影响删除业务
+			err = nil
+			return
+		}
+		oldJob = &oldJobObj
+	}
+	return
+}
+
+func (this *JobMgr) ListJobs() (jobList []*common.Job, err error) {
+	var (
+		dirKey  string
+		getRes  *clientv3.GetResponse
+		job     common.Job
+		jobJson *mvccpb.KeyValue
+	)
+	dirKey = common.JOB_SAVE_DIR
+	if getRes, err = this.Kv.Get(context.TODO(), dirKey, clientv3.WithPrefix()); err != nil {
+		return
+	}
+
+	jobList = make([]*common.Job, 0)
+	for _, jobJson = range getRes.Kvs {
+		if err = json.Unmarshal(jobJson.Value, &job); err != nil {
+			continue
+		}
+		jobList = append(jobList, &job)
 	}
 	return
 }
