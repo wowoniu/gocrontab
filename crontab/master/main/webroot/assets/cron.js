@@ -1,11 +1,12 @@
 ;window.CRON=function(){
-    this.api=null
+    this.apiRoot="http://localhost:8080/job/";
+    this.api=null;
     this.init()
 }
 
 CRON.prototype={
     init:function(){
-        this.api=new Api()
+        this.api=new Api(this.apiRoot)
         this.onAdd()
     },
     renderList:function(){
@@ -39,6 +40,7 @@ CRON.prototype={
     onEdit:function(){
         $('.JS-job-container').on("click",'.JS-job-edit',function(event){
             console.log('edit')
+            $('#edit-modal').modal("show")
         })
     },
     onDelete:function(){
@@ -68,8 +70,8 @@ CRON.prototype={
 
 }
 
-var Api=function () {
-    this.apiRoot="http://localhost:8080/job/";
+var Api=function (apiRoot) {
+    this.apiRoot=apiRoot;
 }
 
 Api.prototype={
