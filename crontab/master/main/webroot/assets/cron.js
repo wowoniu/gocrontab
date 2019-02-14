@@ -93,6 +93,9 @@ CRON.prototype={
     onDelete:function(){
         var context=this;
         $('.JS-job-container').on("click",'.JS-job-del',function(event){
+            if(!window.confirm("您确定要删除吗")){
+                return false;
+            }
             var jobName=$(this).parents('tr').data('name')
             context.api.delete(jobName,function(response){
                 context.showTips("删除成功",function () {
