@@ -23,10 +23,13 @@ func InitApiServer() (err error) {
 	)
 	//设置路由
 	mux = http.NewServeMux()
+	//API
 	mux.HandleFunc("/job/save", handleJobSave)
 	mux.HandleFunc("/job/delete", handleJobDelete)
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
+	//静态文件路由
+	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(G_config.WebRoot))))
 	//监听设置
 	if listener, err = net.Listen("tcp", ":"+strconv.Itoa(G_config.ApiPort)); err != nil {
 		return

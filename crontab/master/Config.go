@@ -12,6 +12,7 @@ type Config struct {
 	WriteTimeout    int      `json:"write_timeout"`     //API写超时时间 毫秒
 	EtcdEndpoints   []string `json:"etcd_endpoints"`    //etcd 集群
 	EtcdDialTimeout int      `json:"etcd_dial_timeout"` //etcd连接超时时间 毫秒
+	WebRoot         string   `json:"web_root"`          //静态资源文件根目录
 }
 
 //全局单例配置
