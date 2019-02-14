@@ -1,0 +1,16 @@
+{
+  "API服务器端口":"master api服务器的端口",
+  "api_port":8080,
+
+  "HTTP服务读取超时时间":"单位毫秒",
+  "read_timeout":5000,
+
+  "HTTP服务写超时时间":"单位毫秒",
+  "write_timeout":5000,
+
+  "ETCD集群":"集群IP:端口",
+  "etcd_endpoints":["127.0.0.1:2379"],
+
+  "ETCD连接超时时间":"单位毫秒",
+  "etcd_dial_timeout":10
+}
