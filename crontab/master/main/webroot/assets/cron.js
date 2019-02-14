@@ -37,6 +37,7 @@ CRON.prototype={
         var context=this;
         $('.JS-job-add').click(function(){
             $('.JS-job-title').html("新增任务");
+            $('#edit-name').removeAttr('readonly');
             $('#edit-modal').find('input').val("")
             $('#edit-modal').find('textarea').val("")
             $('#edit-modal').modal("show")
