@@ -30,7 +30,12 @@ func main() {
 	}
 
 	//监听任务
-	go worker.G_jobmgr.WatchJobs()
+	go func() {
+		if err = worker.G_jobmgr.WatchJobs(); err != nil {
+			fmt.Println("任务监听错误:", err)
+			return
+		}
+	}()
 
 	for {
 		time.Sleep(1 * time.Second)

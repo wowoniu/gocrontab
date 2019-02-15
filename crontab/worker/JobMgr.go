@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/mvcc/mvccpb"
 	"gocrontab/crontab/common"
@@ -34,7 +35,7 @@ func LoadJobMgr() (err error) {
 	)
 	config = clientv3.Config{
 		Endpoints:   G_config.EtcdEndpoints,
-		DialTimeout: time.Second,
+		DialTimeout: time.Duration(G_config.EtcdDialTimeout) * time.Millisecond,
 	}
 	if client, err = clientv3.New(config); err != nil {
 		//fmt.Println("连接失败")
@@ -59,13 +60,13 @@ func LoadJobMgr() (err error) {
 func (this *JobMgr) WatchJobs() (err error) {
 	var (
 		getRes              *clientv3.GetResponse
-		kValue              mvccpb.KeyValue
+		kValue              *mvccpb.KeyValue
 		job                 *common.Job
 		currentRevision     int64
 		startListenRevision int64
 		watchChan           clientv3.WatchChan
 		watchRes            clientv3.WatchResponse
-		watchEvent          *mvccpb.Event
+		watchEvent          *clientv3.Event
 	)
 	//获取所有任务列表
 	if getRes, err = this.Kv.Get(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithPrefix()); err != nil {
@@ -75,7 +76,7 @@ func (this *JobMgr) WatchJobs() (err error) {
 	for _, kValue = range getRes.Kvs {
 		if job, err = common.UnpackJob(kValue.Value); err == nil {
 			//TODO 将任务分发给调度协程
-			job = job
+			//fmt.Println("任务:",job.Name)
 		}
 	}
 	//取得当前的Revision版本
@@ -83,19 +84,37 @@ func (this *JobMgr) WatchJobs() (err error) {
 	startListenRevision = currentRevision + 1
 	//监听etcd 中任务的变化
 	go func() {
-		watchChan = this.Watcher.Watch(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithRev(startListenRevision))
+		var (
+			err      error
+			job      *common.Job
+			jobName  string
+			jobEvent *common.JobEvent
+		)
+		//监听etcd的变化
+		watchChan = this.Watcher.Watch(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithRev(startListenRevision), clientv3.WithPrefix())
 
 		for watchRes = range watchChan {
 			//遍历变化的事件
 			for _, watchEvent = range watchRes.Events {
 				switch watchEvent.Type {
 				case mvccpb.PUT:
-					//任务保存
-
+					//任务保存 (新建或修改) 获取保存的值
+					if job, err = common.UnpackJob(watchEvent.Kv.Value); err != nil {
+						continue
+					}
+					//构造变更事件
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_SAVE, job)
 				case mvccpb.DELETE:
 					//任务删除
-
+					jobName = common.ExtractJobName(string(watchEvent.Kv.Key))
+					job = &common.Job{
+						Name: jobName,
+					}
+					//构造变更事件
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 				}
+				//事件推送到调度协程 TODO
+				fmt.Println("任务变化:", jobEvent.Job.Name, jobEvent.EventType)
 			}
 		}
 	}()

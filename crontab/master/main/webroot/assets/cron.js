@@ -1,5 +1,5 @@
 ;window.CRON=function(){
-    this.apiRoot="http://localhost:8080/job/";
+    this.apiRoot="/job/";
     this.api=null;
     this.init()
 }
