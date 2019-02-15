@@ -21,9 +21,9 @@ CRON.prototype={
                     "<td>"+
                     "<div class='btn-toolbar'>"+
                     "    <button class=\"btn btn-info JS-job-edit \">编辑</button>"+
+                    "    <a class=\"btn btn-info \" href='/log.html?name="+records[i]['name']+"' target='_blank'>日志</a>"+
                     "    <button class=\"btn btn-warning JS-job-kill \">强杀</button>"+
                     "    <button class=\"btn btn-danger JS-job-del \">删除</button>"+
-                    "    <a class=\"btn btn-info \" href='/log.html' target='_blank'>日志</a>"+
                     "   </div>"+
                     "</td></tr>";
             }
@@ -36,7 +36,8 @@ CRON.prototype={
 
     renderLog:function(){
         var context=this;
-        this.api.log(function(records){
+        var jobName="文件刷新"
+        this.api.log(jobName,function(records){
             var html="";
             for (var i=0;i<records.length;i++){
                 html+="<tr data-name='"+records[i]["JobName"]+"'><td>"+records[i]['JobName']+"</td>"+
@@ -184,8 +185,8 @@ Api.prototype={
     list:function(successCallback,errCallback){
         this._request("list",{},successCallback,errCallback)
     },
-    log:function(successCallback,errCallback){
-        this._request("log",{},successCallback,errCallback)
+    log:function(jobName,successCallback,errCallback){
+        this._request("log",{"name":jobName},successCallback,errCallback)
     },
     save:function(data,successCallback,errCallback){
         this._request("save",data,successCallback,errCallback)

@@ -2,6 +2,7 @@ package master
 
 import (
 	"encoding/json"
+	"fmt"
 	"gocrontab/crontab/common"
 	"net"
 	"net/http"
@@ -143,6 +144,7 @@ func handleJobLog(w http.ResponseWriter, r *http.Request) {
 	)
 	r.ParseForm()
 	jobName = r.PostForm.Get("name")
+	fmt.Println(jobName)
 	if logList, err = G_joblog.GetLogList(jobName); err != nil {
 		output(w, 14001, "获取日志失败:"+err.Error(), nil)
 		return

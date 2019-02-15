@@ -2,7 +2,6 @@ package master
 
 import (
 	"context"
-	"fmt"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"gocrontab/crontab/common"
@@ -42,14 +41,13 @@ func (this *JobLog) GetLogList(jobName string) (batchLogs []*common.JobLog, err 
 		jobLog     *common.JobLog
 	)
 	batchLogs = make([]*common.JobLog, 0)
-	if findCursor, err = this.Collection.Find(context.TODO(), bson.D{}); err != nil {
+	if findCursor, err = this.Collection.Find(context.TODO(), bson.M{"JobName": jobName}); err != nil {
 		return
 	}
 	defer findCursor.Close(context.TODO())
 	for findCursor.Next(context.TODO()) {
 		jobLog = &common.JobLog{}
 		if err = findCursor.Decode(jobLog); err != nil {
-			fmt.Println(err)
 			continue
 		}
 		batchLogs = append(batchLogs, jobLog)
