@@ -23,19 +23,20 @@ func main() {
 		checkErr(err)
 		return
 	}
+
+	//加载调度器
+	if err = worker.LoadScheduler(); err != nil {
+		checkErr(err)
+		return
+	}
 	//加载任务管理器
 	if err = worker.LoadJobMgr(); err != nil {
 		checkErr(err)
 		return
 	}
 
-	//监听任务
-	go func() {
-		if err = worker.G_jobmgr.WatchJobs(); err != nil {
-			fmt.Println("任务监听错误:", err)
-			return
-		}
-	}()
+	//加载任务执行器
+	worker.LoadJobExecutor()
 
 	for {
 		time.Sleep(1 * time.Second)

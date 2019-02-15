@@ -2,7 +2,9 @@ package common
 
 import (
 	"encoding/json"
+	"github.com/gorhill/cronexpr"
 	"strings"
+	"time"
 )
 
 //计划任务
@@ -24,6 +26,29 @@ type ApiResponse struct {
 type JobEvent struct {
 	Job       *Job
 	EventType int
+}
+
+//任务的调度计划
+type JobSchedulePlan struct {
+	Job      *Job
+	Expr     *cronexpr.Expression
+	NextTime time.Time
+}
+
+//任务执行状态
+type JobExecuteInfo struct {
+	Job      *Job
+	PlanTime time.Time //计划执行时间
+	RealTime time.Time //实际执行时间
+}
+
+//任务执行结果
+type JobExecuteResult struct {
+	JobExecuteInfo *JobExecuteInfo
+	OutPut         []byte
+	Err            error
+	StartTime      time.Time
+	EndTime        time.Time
 }
 
 //job JSON反序列化

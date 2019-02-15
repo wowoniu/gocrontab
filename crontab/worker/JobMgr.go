@@ -22,7 +22,7 @@ type JobMgr struct {
 }
 
 var (
-	G_jobmgr JobMgr
+	G_jobmgr *JobMgr
 )
 
 func LoadJobMgr() (err error) {
@@ -46,13 +46,20 @@ func LoadJobMgr() (err error) {
 	lease = clientv3.NewLease(client)
 	watcher = clientv3.NewWatcher(client)
 
-	G_jobmgr = JobMgr{
+	G_jobmgr = &JobMgr{
 		Client:  client,
 		Kv:      kv,
 		Lease:   lease,
 		Watcher: watcher,
 	}
 
+	//启动监听任务协程
+	go func() {
+		if err = G_jobmgr.WatchJobs(); err != nil {
+			fmt.Println("任务监听错误:", err)
+			return
+		}
+	}()
 	return
 }
 
@@ -67,6 +74,7 @@ func (this *JobMgr) WatchJobs() (err error) {
 		watchChan           clientv3.WatchChan
 		watchRes            clientv3.WatchResponse
 		watchEvent          *clientv3.Event
+		jobEvent            *common.JobEvent
 	)
 	//获取所有任务列表
 	if getRes, err = this.Kv.Get(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithPrefix()); err != nil {
@@ -75,8 +83,11 @@ func (this *JobMgr) WatchJobs() (err error) {
 	//遍历任务 发送给调度协程
 	for _, kValue = range getRes.Kvs {
 		if job, err = common.UnpackJob(kValue.Value); err == nil {
-			//TODO 将任务分发给调度协程
-			//fmt.Println("任务:",job.Name)
+			jobEvent = &common.JobEvent{
+				Job:       job,
+				EventType: common.JOB_EVENT_SAVE,
+			}
+			G_scheduler.PushJobEvent(jobEvent)
 		}
 	}
 	//取得当前的Revision版本
@@ -113,8 +124,8 @@ func (this *JobMgr) WatchJobs() (err error) {
 					//构造变更事件
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
 				}
-				//事件推送到调度协程 TODO
-				fmt.Println("任务变化:", jobEvent.Job.Name, jobEvent.EventType)
+				//事件推送到调度协程
+				G_scheduler.PushJobEvent(jobEvent)
 			}
 		}
 	}()
