@@ -29,19 +29,35 @@ func (this *JobExecutor) ExecJob(jobExecuteInfo *common.JobExecuteInfo) {
 		startTime     time.Time
 		endTime       time.Time
 		jobExecuteRes *common.JobExecuteResult
+		jobLock       *JobLock
 	)
-	startTime = time.Now()
-	cmd = exec.CommandContext(context.TODO(), G_config.ExecuteShell, "-c", jobExecuteInfo.Job.Command)
-
-	//命令执行 并获取输出
-	output, err = cmd.CombinedOutput()
-	endTime = time.Now()
-	jobExecuteRes = &common.JobExecuteResult{
-		JobExecuteInfo: jobExecuteInfo,
-		OutPut:         output,
-		Err:            err,
-		StartTime:      startTime,
-		EndTime:        endTime,
+	//获取锁对象
+	jobLock = CreateJobLock(jobExecuteInfo.Job.Name, G_jobmgr.Kv, G_jobmgr.Lease)
+	//执行加锁
+	if err = jobLock.TryLock(); err != nil {
+		//加锁失败
+		startTime = time.Now()
+		jobExecuteRes = &common.JobExecuteResult{
+			JobExecuteInfo: jobExecuteInfo,
+			Err:            err,
+			StartTime:      startTime,
+			EndTime:        startTime,
+		}
+	} else {
+		//加锁成功
+		startTime = time.Now()
+		cmd = exec.CommandContext(context.TODO(), G_config.ExecuteShell, "-c", jobExecuteInfo.Job.Command)
+		//命令执行 并获取输出
+		output, err = cmd.CombinedOutput()
+		endTime = time.Now()
+		//命令结果
+		jobExecuteRes = &common.JobExecuteResult{
+			JobExecuteInfo: jobExecuteInfo,
+			OutPut:         output,
+			Err:            err,
+			StartTime:      startTime,
+			EndTime:        endTime,
+		}
 	}
 	//执行结果写入调度器管道
 	G_scheduler.PushJobResult(jobExecuteRes)
