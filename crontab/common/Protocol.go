@@ -54,6 +54,17 @@ type JobExecuteResult struct {
 	EndTime        time.Time
 }
 
+type JobLog struct {
+	JobName      string `bson:"job_name"`
+	Command      string `bson:"command"`
+	Err          string `bson:"err"`
+	Output       string `bson:"output"`
+	PlanTime     int64  `bson:"plan_time"`
+	ScheduleTime int64  `bson:"schedule_time"`
+	StartTime    int64  `bson:"start_time"`
+	EndTime      int64  `bson:"end_time"`
+}
+
 //job JSON反序列化
 func UnpackJob(data []byte) (job *Job, err error) {
 	job = &Job{}

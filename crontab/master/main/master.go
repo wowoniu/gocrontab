@@ -32,6 +32,11 @@ func main() {
 		checkErr(err)
 		return
 	}
+	//加载日志管理器
+	if err = master.LoadJobLog(); err != nil {
+		checkErr(err)
+		return
+	}
 	//API SERVER初始化
 	if err = master.InitApiServer(); err != nil {
 		checkErr(err)

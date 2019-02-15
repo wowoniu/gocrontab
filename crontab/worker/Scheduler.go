@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"fmt"
 	"github.com/gorhill/cronexpr"
 	"gocrontab/crontab/common"
 	"time"
@@ -184,5 +183,24 @@ func (this *Scheduler) HandleJobResult(jobExecuteRes *common.JobExecuteResult) {
 	//从正在执行队列中移除任务
 	delete(this.JobExecuteingTable, jobExecuteRes.JobExecuteInfo.Job.Name)
 	//日志存储
-	fmt.Println(time.Now(), jobExecuteRes.JobExecuteInfo.Job.Name, "任务执行完毕:", string(jobExecuteRes.OutPut), jobExecuteRes.Err, jobExecuteRes.StartTime, jobExecuteRes.EndTime)
+	G_log.PushLog(this.BuildJobLog(jobExecuteRes))
+	//fmt.Println(time.Now(), jobExecuteRes.JobExecuteInfo.Job.Name, "任务执行完毕:", string(jobExecuteRes.OutPut), jobExecuteRes.Err,"耗时:",jobExecuteRes.EndTime.Sub(jobExecuteRes.StartTime))
+}
+
+func (this *Scheduler) BuildJobLog(jobExecuteRes *common.JobExecuteResult) *common.JobLog {
+	res := &common.JobLog{
+		JobName:      jobExecuteRes.JobExecuteInfo.Job.Name,
+		Command:      jobExecuteRes.JobExecuteInfo.Job.Command,
+		Output:       string(jobExecuteRes.OutPut),
+		PlanTime:     jobExecuteRes.JobExecuteInfo.PlanTime.Unix(),
+		ScheduleTime: jobExecuteRes.JobExecuteInfo.RealTime.Unix(),
+		StartTime:    jobExecuteRes.StartTime.Unix(),
+		EndTime:      jobExecuteRes.EndTime.Unix(),
+	}
+	if jobExecuteRes.Err != nil {
+		res.Err = jobExecuteRes.Err.Error()
+	} else {
+		res.Err = ""
+	}
+	return res
 }

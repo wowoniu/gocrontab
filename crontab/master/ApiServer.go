@@ -28,6 +28,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/delete", handleJobDelete)
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
+	mux.HandleFunc("/job/log", handleJobLog)
 	//静态文件路由
 	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(G_config.WebRoot))))
 	//监听设置
@@ -131,6 +132,22 @@ func handleJobKill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	output(w, 0, "success", nil)
+}
+
+//获取任务日志
+func handleJobLog(w http.ResponseWriter, r *http.Request) {
+	var (
+		jobName string
+		err     error
+		logList []*common.JobLog
+	)
+	r.ParseForm()
+	jobName = r.PostForm.Get("name")
+	if logList, err = G_joblog.GetLogList(jobName); err != nil {
+		output(w, 14001, "获取日志失败:"+err.Error(), nil)
+		return
+	}
+	output(w, 0, "success", logList)
 }
 
 func output(w http.ResponseWriter, errno int, msg string, data interface{}) {

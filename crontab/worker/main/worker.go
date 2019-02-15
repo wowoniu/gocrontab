@@ -38,6 +38,12 @@ func main() {
 	//加载任务执行器
 	worker.LoadJobExecutor()
 
+	//加载日志处理器
+	if err = worker.LoadLog(); err != nil {
+		checkErr(err)
+		return
+	}
+
 	for {
 		time.Sleep(1 * time.Second)
 	}
@@ -46,7 +52,7 @@ func main() {
 
 func initEnv() {
 	//设置线程数
-	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	//加载命令行参数
 	flag.StringVar(&configFile, "config", "./worker.json", "worker的配置JSON文件")
 	flag.Parse()
