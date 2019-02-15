@@ -36,7 +36,7 @@ func (this *JobLock) TryLock() (err error) {
 		lockKey           string
 		txnRes            *clientv3.TxnResponse
 	)
-	//创建租约
+	//创建一个5S的租约
 	if leaseGrantRes, err = this.Lease.Grant(context.TODO(), 5); err != nil {
 		return
 	}
