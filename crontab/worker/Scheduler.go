@@ -18,7 +18,7 @@ var G_scheduler *Scheduler
 
 func LoadScheduler() (err error) {
 	G_scheduler = &Scheduler{
-		JobEventChan:         make(chan *common.JobEvent, 1000),
+		JobEventChan:         make(chan *common.JobEvent, 1),
 		JobPlanTable:         make(map[string]*common.JobSchedulePlan),
 		JobExecuteingTable:   make(map[string]*common.JobExecuteInfo),
 		JobExecuteResultChan: make(chan *common.JobExecuteResult, 1000),
@@ -44,6 +44,7 @@ func (this *Scheduler) scheduleLoop() {
 		select {
 		//任务事件管道监听
 		case jobEvent = <-this.JobEventChan:
+			//fmt.Println("任务事件管道消息:",jobEvent)
 			this.HandleJobEvent(jobEvent)
 		case <-afterTimer.C:
 			//定时器 最近一次任务执行时间到达
@@ -98,6 +99,8 @@ func (this *Scheduler) HandleJobEvent(jobEvent *common.JobEvent) {
 		err             error
 		jobExisted      bool
 		jobSchedulePlan *common.JobSchedulePlan
+		jobExecuteInfo  *common.JobExecuteInfo
+		jobExecuteing   bool
 	)
 	switch jobEvent.EventType {
 	//任务删除
@@ -113,8 +116,14 @@ func (this *Scheduler) HandleJobEvent(jobEvent *common.JobEvent) {
 		}
 		//加入计划队列
 		this.JobPlanTable[jobEvent.Job.Name] = jobSchedulePlan
+	//任务强杀
+	case common.JOB_EVENT_KILL:
+		if jobExecuteInfo, jobExecuteing = this.JobExecuteingTable[jobEvent.Job.Name]; jobExecuteing {
+			//fmt.Println("任务强杀(执行中):",jobEvent.Job.Name)
+			jobExecuteInfo.CancelFunc()
+		}
 	}
-	fmt.Println(this.JobPlanTable)
+	//fmt.Println(this.JobPlanTable)
 }
 
 func (this *Scheduler) BuildSchedulPlan(job *common.Job) (schedulePlan *common.JobSchedulePlan, err error) {
@@ -153,7 +162,7 @@ func (this *Scheduler) DoSchedule(jobSchedulePlan *common.JobSchedulePlan) {
 	)
 	if jobExecuteInfo, jobExcuteing = this.JobExecuteingTable[jobSchedulePlan.Job.Name]; jobExcuteing {
 		//正在执行 跳过
-		fmt.Println("正在执行中:", jobSchedulePlan.Job.Name, "跳过")
+		//fmt.Println(time.Now(),"正在执行中:", jobSchedulePlan.Job.Name, "跳过")
 		return
 	}
 	//加入正在执行的队列中去
@@ -175,5 +184,5 @@ func (this *Scheduler) HandleJobResult(jobExecuteRes *common.JobExecuteResult) {
 	//从正在执行队列中移除任务
 	delete(this.JobExecuteingTable, jobExecuteRes.JobExecuteInfo.Job.Name)
 	//日志存储
-	fmt.Println(time.Now(), jobExecuteRes.JobExecuteInfo.Job.Name, "任务执行完毕:", string(jobExecuteRes.OutPut), jobExecuteRes.Err)
+	fmt.Println(time.Now(), jobExecuteRes.JobExecuteInfo.Job.Name, "任务执行完毕:", string(jobExecuteRes.OutPut), jobExecuteRes.Err, jobExecuteRes.StartTime, jobExecuteRes.EndTime)
 }

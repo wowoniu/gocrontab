@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/gorhill/cronexpr"
 	"strings"
@@ -37,9 +38,11 @@ type JobSchedulePlan struct {
 
 //任务执行状态
 type JobExecuteInfo struct {
-	Job      *Job
-	PlanTime time.Time //计划执行时间
-	RealTime time.Time //实际执行时间
+	Job        *Job
+	PlanTime   time.Time //计划执行时间
+	RealTime   time.Time //实际执行时间
+	CancelCtx  context.Context
+	CancelFunc context.CancelFunc
 }
 
 //任务执行结果
@@ -63,6 +66,10 @@ func UnpackJob(data []byte) (job *Job, err error) {
 //从etcd的key中提取任务名
 func ExtractJobName(jobKey string) string {
 	return strings.TrimLeft(jobKey, JOB_SAVE_DIR)
+}
+
+func ExtractKillJobName(jobKey string) string {
+	return strings.TrimLeft(jobKey, JOB_KILL_DIR)
 }
 
 //构造调度协程的事件对象

@@ -15,4 +15,7 @@ const (
 
 	//ETCD中任务的变更事件 删除事件
 	JOB_EVENT_DELETE = 2
+
+	//任务强杀事件
+	JOB_EVENT_KILL = 3
 )

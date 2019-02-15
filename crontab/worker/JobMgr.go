@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/mvcc/mvccpb"
 	"gocrontab/crontab/common"
@@ -54,17 +53,15 @@ func LoadJobMgr() (err error) {
 	}
 
 	//启动监听任务协程
-	go func() {
-		if err = G_jobmgr.WatchJobs(); err != nil {
-			fmt.Println("任务监听错误:", err)
-			return
-		}
-	}()
+	G_jobmgr.WatchJobs()
+
+	//监听强杀协程
+	G_jobmgr.WatchKill()
 	return
 }
 
 //监听任务的变更
-func (this *JobMgr) WatchJobs() (err error) {
+func (this *JobMgr) WatchJobs() {
 	var (
 		getRes              *clientv3.GetResponse
 		kValue              *mvccpb.KeyValue
@@ -75,6 +72,7 @@ func (this *JobMgr) WatchJobs() (err error) {
 		watchRes            clientv3.WatchResponse
 		watchEvent          *clientv3.Event
 		jobEvent            *common.JobEvent
+		err                 error
 	)
 	//获取所有任务列表
 	if getRes, err = this.Kv.Get(context.TODO(), common.JOB_SAVE_DIR, clientv3.WithPrefix()); err != nil {
@@ -126,6 +124,57 @@ func (this *JobMgr) WatchJobs() (err error) {
 				}
 				//事件推送到调度协程
 				G_scheduler.PushJobEvent(jobEvent)
+			}
+		}
+	}()
+	return
+}
+
+//监听任务的强杀
+func (this *JobMgr) WatchKill() {
+	var (
+		//getRes              *clientv3.GetResponse
+		//currentRevision     int64
+		//startListenRevision int64
+		watchChan  clientv3.WatchChan
+		watchRes   clientv3.WatchResponse
+		watchEvent *clientv3.Event
+		//err error
+	)
+	//获取所有需要强杀的任务列表
+	//if getRes, err = this.Kv.Get(context.TODO(), common.JOB_KILL_DIR, clientv3.WithPrefix()); err != nil {
+	//	return
+	//}
+	//取得当前的Revision版本
+	//currentRevision = getRes.Header.Revision
+	//startListenRevision = currentRevision + 1
+	//监听etcd 中kill目录的变化
+	go func() {
+		var (
+			job      *common.Job
+			jobName  string
+			jobEvent *common.JobEvent
+		)
+		//监听killer目录的变化
+		//watchChan = this.Watcher.Watch(context.TODO(), common.JOB_KILL_DIR, clientv3.WithRev(startListenRevision), clientv3.WithPrefix())
+		watchChan = this.Watcher.Watch(context.TODO(), common.JOB_KILL_DIR, clientv3.WithPrefix())
+
+		for watchRes = range watchChan {
+			//遍历变化的事件
+			for _, watchEvent = range watchRes.Events {
+				jobName = common.ExtractKillJobName(string(watchEvent.Kv.Key))
+				switch watchEvent.Type {
+				case mvccpb.PUT:
+					//强杀
+					job = &common.Job{
+						Name: jobName,
+					}
+					//构造强杀事件
+					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)
+					//事件推送到调度协程
+					G_scheduler.PushJobEvent(jobEvent)
+				case mvccpb.DELETE:
+				}
 			}
 		}
 	}()

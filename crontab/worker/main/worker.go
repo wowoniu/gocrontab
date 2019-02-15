@@ -46,7 +46,7 @@ func main() {
 
 func initEnv() {
 	//设置线程数
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
 	//加载命令行参数
 	flag.StringVar(&configFile, "config", "./worker.json", "worker的配置JSON文件")
 	flag.Parse()
