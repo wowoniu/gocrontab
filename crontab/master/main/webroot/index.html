@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>分布式任务</title>
     <script src="/assets/jquery.3.3.1.js"></script>
+    <script src="/assets/jq-paginator.min.js"></script>
     <link href="/assets/bootstrap.min.css" rel="stylesheet"></head>
     <script src="/assets/bootstrap.min.js"></script>
     <script src="/assets/cron.js"></script>
@@ -44,6 +45,10 @@
             </div>
         </div>
 
+        <div class="col-md-12">
+            <div class="JS-page-box pagination"></div>
+        </div>
+
 
         <div class="alert JS-alert" role="alert" style="width:100%;display: none;;position: fixed;bottom:0px;">提示信息</div>
     </div>
@@ -63,7 +68,6 @@
                         <div class="form-group">
                             <label for="edit-name">任务名称</label>
                             <input type="text" class="form-control" id="edit-name" placeholder="任务名称">
-                            <input type="hidden" class="form-control" id="edit-old-name">
                         </div>
                         <div class="form-group">
                             <label for="edit-name">任务命令</label>

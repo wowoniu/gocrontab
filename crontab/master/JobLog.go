@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"gocrontab/crontab/common"
 )
 
@@ -21,7 +22,7 @@ func LoadJobLog() (err error) {
 		database   *mongo.Database
 		collection *mongo.Collection
 	)
-	if client, err = mongo.Connect(context.TODO(), "mongodb://127.0.0.1:27017"); err != nil {
+	if client, err = mongo.Connect(context.TODO(), G_config.MongoHost); err != nil {
 		return
 	}
 	database = client.Database("cron")
@@ -35,14 +36,27 @@ func LoadJobLog() (err error) {
 	return
 }
 
-func (this *JobLog) GetLogList(jobName string) (batchLogs []*common.JobLog, err error) {
+func (this *JobLog) GetLogList(jobName string, page int64, pageSize int64) (batchLogs []*common.JobLog, count int64, err error) {
 	var (
-		findCursor *mongo.Cursor
-		jobLog     *common.JobLog
+		findCursor  *mongo.Cursor
+		jobLog      *common.JobLog
+		findOptions *options.FindOptions
+		skip        int64
 	)
+	skip = (page - 1) * pageSize
 	batchLogs = make([]*common.JobLog, 0)
-	if findCursor, err = this.Collection.Find(context.TODO(), bson.M{"JobName": jobName}); err != nil {
+
+	findOptions = &options.FindOptions{}
+	findOptions.SetSkip(skip)
+	findOptions.SetLimit(pageSize)
+	findOptions.SetSort(bson.M{"_id": -1})
+	if findCursor, err = this.Collection.Find(context.TODO(), bson.M{"job_name": jobName}, findOptions); err != nil {
 		return
+	}
+	//统计
+	if count, err = this.Collection.CountDocuments(context.TODO(), bson.M{"job_name": jobName}); err != nil {
+		err = nil
+		count = 0
 	}
 	defer findCursor.Close(context.TODO())
 	for findCursor.Next(context.TODO()) {

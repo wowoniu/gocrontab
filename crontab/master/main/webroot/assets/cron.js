@@ -1,6 +1,13 @@
 ;window.CRON=function(){
     this.apiRoot="/job/";
     this.api=null;
+    this.totalCount=0;
+    this.pageSize=10;
+    this.totalPage=1;
+    this.currentPage=1;
+    this.requestLock=false;
+    this.pageInited=false;
+    this.pageLastKey=0;
     this.init()
 }
 
@@ -11,9 +18,13 @@ CRON.prototype={
     },
     renderList:function(){
         var context=this;
-        this.api.list(function(records){
+        this.api.list(function(data){
+            context.totalCount=data['count']
+            context.totalPage=Math.ceil(context.totalCount/context.pageSize)
+            var records=data['data']
             var html="";
             for (var i=0;i<records.length;i++){
+                context.pageLastKey=records[i]['id']
                 html+="<tr data-name='"+records[i]["name"]+"'><td>"+records[i]['name']+"</td>"+
                     "<td>"+records[i]['command']+"</td>"+
                     "<td>"+records[i]['cron_expr']+"</td>"+
@@ -27,6 +38,7 @@ CRON.prototype={
                     "   </div>"+
                     "</td></tr>";
             }
+            //context.renderPage(context.totalPage,context.currentPage,context.renderList)
             $('.JS-job-list').html(html)
             context.onEdit()
             context.onDelete()
@@ -36,8 +48,11 @@ CRON.prototype={
 
     renderLog:function(){
         var context=this;
-        var jobName="文件刷新"
-        this.api.log(jobName,function(records){
+        var jobName=context.getUrlParam("name")
+        this.api.log(jobName,context.currentPage,context.pageSize,function(data){
+            context.totalCount=data['count']
+            context.totalPage=Math.ceil(context.totalCount/context.pageSize)
+            var records=data['data']
             var html="";
             for (var i=0;i<records.length;i++){
                 html+="<tr data-name='"+records[i]["JobName"]+"'><td>"+records[i]['JobName']+"</td>"+
@@ -51,23 +66,51 @@ CRON.prototype={
                     "</tr>";
             }
             $('.JS-job-list').html(html)
+            context.renderPage(context.totalPage,context.currentPage,context.renderLog)
             context.onEdit()
             context.onDelete()
             context.onKill()
         })
     },
 
+    renderPage:function(totalPage,currentPage,callback){
+        var context=this;
+        if(totalPage==0)return
+        if(context.pageObj)$('.JS-page-box').jqPaginator("destroy")
+        context.pageObj=$('.JS-page-box').jqPaginator({
+            totalPages: totalPage,
+            visiblePages: 10,
+            currentPage: currentPage,
+
+            first: '<li class="first"><a href="javascript:void(0);">首页</a></li>',
+            prev: '<li class="prev"><a href="javascript:void(0);">上一页</a></li>',
+            next: '<li class="next"><a href="javascript:void(0);">下一页</a></li>',
+            last: '<li class="last"><a href="javascript:void(0);">最后一页</a></li>',
+            page: '<li class="page"><a href="javascript:void(0);">{{page}}</a></li>',
+            onPageChange: function (num) {
+                if(callback&&num!=context.currentPage){
+                    context.currentPage=num;
+                    callback.call(context)
+                }
+            }
+        });
+    },
+
+
     onAdd:function(){
         var context=this;
         $('.JS-job-add').click(function(){
             $('.JS-job-title').html("新增任务");
             $('#edit-name').removeAttr('readonly');
+
+            $('#edit-modal').find('input').val("")
             $('#edit-modal').find('input').val("")
             $('#edit-modal').find('textarea').val("")
             $('#edit-modal').modal("show")
             $('#JS-edit-save').off('click').click(function () {
                     //保存
                     var job={
+                        "id":context.newJobKey.toString(),
                         "name":$('#edit-name').val(),
                         "command":$('#edit-command').val(),
                         "cron_expr":$('#edit-cronexpr').val(),
@@ -174,6 +217,12 @@ CRON.prototype={
                 if(new RegExp("("+ k +")").test(fmt))
                     fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
             return fmt;
+    },
+    getUrlParam:function(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return decodeURIComponent(r[2]);
+        return null; //返回参数值
     }
 }
 
@@ -185,8 +234,8 @@ Api.prototype={
     list:function(successCallback,errCallback){
         this._request("list",{},successCallback,errCallback)
     },
-    log:function(jobName,successCallback,errCallback){
-        this._request("log",{"name":jobName},successCallback,errCallback)
+    log:function(jobName,page,pageSize,successCallback,errCallback){
+        this._request("log",{"name":jobName,"page":page,"page_size":pageSize},successCallback,errCallback)
     },
     save:function(data,successCallback,errCallback){
         this._request("save",data,successCallback,errCallback)
@@ -199,17 +248,23 @@ Api.prototype={
     },
     _request:function(api,data,successCallback,errCallback){
         var context=this;
+        if(context.requestLock)return
+        context.requestLock=true;
         $.ajax({
             url:context.apiRoot+api,
             data:data,
             type:"post",
             success:function(response){
+                context.requestLock=false;
                 res=JSON.parse(response)
                 if(res.errno==0){
                     if(successCallback)successCallback(res['data'])
                 }else{
                     if(errCallback)errCallback(res['msg'])
                 }
+            },
+            error:function(err){
+                context.requestLock=true;
             }
         });
     }

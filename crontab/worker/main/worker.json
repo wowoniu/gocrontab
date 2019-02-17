@@ -6,5 +6,8 @@
   "etcd_dial_timeout":5000,
 
   "执行命令的shell":"如 /usr/bin/bash",
-  "execute_shell":"E:\\cygwin\\bin\\bash.exe"
+  "execute_shell":"E:\\cygwin\\bin\\bash.exe",
+
+  "mongo配置":"如:mongodb://127.0.0.1:27017",
+  "mongo_host":"mongodb://127.0.0.1:27017"
 }

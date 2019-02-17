@@ -108,7 +108,7 @@ func (this *JobMgr) DeleteJob(jobName string) (oldJob *common.Job, err error) {
 	return
 }
 
-func (this *JobMgr) ListJobs() (jobList []*common.Job, err error) {
+func (this *JobMgr) ListJobs() (jobList []*common.Job, count int64, err error) {
 	var (
 		dirKey  string
 		getRes  *clientv3.GetResponse
@@ -116,10 +116,11 @@ func (this *JobMgr) ListJobs() (jobList []*common.Job, err error) {
 		jobJson *mvccpb.KeyValue
 	)
 	dirKey = common.JOB_SAVE_DIR
+
 	if getRes, err = this.Kv.Get(context.TODO(), dirKey, clientv3.WithPrefix()); err != nil {
 		return
 	}
-
+	count = getRes.Count
 	jobList = make([]*common.Job, 0)
 	for _, jobJson = range getRes.Kvs {
 		job = &common.Job{}

@@ -2,7 +2,6 @@ package master
 
 import (
 	"encoding/json"
-	"fmt"
 	"gocrontab/crontab/common"
 	"net"
 	"net/http"
@@ -54,7 +53,7 @@ func InitApiServer() (err error) {
 
 //任务保存接口
 func handleJobSave(w http.ResponseWriter, r *http.Request) {
-	//POST job={"name":"job1","command":"echo 1","cron_expr":"* * * * *","desc":"任务描述"}
+	//POST job={"id":"11","name":"job1","command":"echo 1","cron_expr":"* * * * *","desc":"任务描述"}
 	var (
 		err    error
 		jobStr string
@@ -109,15 +108,17 @@ func handleJobDelete(w http.ResponseWriter, r *http.Request) {
 //获取所有任务列表
 func handleJobList(w http.ResponseWriter, r *http.Request) {
 	var (
-		jobList []*common.Job
-		err     error
+		jobList    []*common.Job
+		totalCount int64
+		err        error
 	)
-	if jobList, err = G_jobmgr.ListJobs(); err != nil {
+	r.ParseForm()
+	if jobList, totalCount, err = G_jobmgr.ListJobs(); err != nil {
 		output(w, 12001, "列表获取失败:"+err.Error(), nil)
 		return
 	}
 
-	output(w, 0, "success", jobList)
+	output(w, 0, "success", common.ApiListData{totalCount, jobList})
 }
 
 //强杀任务
@@ -138,18 +139,23 @@ func handleJobKill(w http.ResponseWriter, r *http.Request) {
 //获取任务日志
 func handleJobLog(w http.ResponseWriter, r *http.Request) {
 	var (
-		jobName string
-		err     error
-		logList []*common.JobLog
+		jobName    string
+		err        error
+		logList    []*common.JobLog
+		totalCount int64
+		page       int64
+		pageSize   int64
 	)
 	r.ParseForm()
 	jobName = r.PostForm.Get("name")
-	fmt.Println(jobName)
-	if logList, err = G_joblog.GetLogList(jobName); err != nil {
+	pageSize = 10
+	page, _ = strconv.ParseInt(r.PostForm.Get("page"), 10, 64)
+	pageSize, _ = strconv.ParseInt(r.PostForm.Get("page_size"), 10, 64)
+	if logList, totalCount, err = G_joblog.GetLogList(jobName, page, pageSize); err != nil {
 		output(w, 14001, "获取日志失败:"+err.Error(), nil)
 		return
 	}
-	output(w, 0, "success", logList)
+	output(w, 0, "success", common.ApiListData{totalCount, logList})
 }
 
 func output(w http.ResponseWriter, errno int, msg string, data interface{}) {

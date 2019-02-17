@@ -10,6 +10,7 @@ import (
 
 //计划任务
 type Job struct {
+	Id       string `json:"id"` //方便分页查询 用ID做键值
 	Name     string `json:"name"`
 	Command  string `json:"command"`
 	CronExpr string `json:"cron_expr"`
@@ -20,6 +21,11 @@ type Job struct {
 type ApiResponse struct {
 	Errno int         `json:"errno"`
 	Msg   string      `json:"msg"`
+	Data  interface{} `json:"data"`
+}
+
+type ApiListData struct {
+	Count int64       `json:"count"`
 	Data  interface{} `json:"data"`
 }
 

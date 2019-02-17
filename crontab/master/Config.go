@@ -13,6 +13,7 @@ type Config struct {
 	EtcdEndpoints   []string `json:"etcd_endpoints"`    //etcd 集群
 	EtcdDialTimeout int      `json:"etcd_dial_timeout"` //etcd连接超时时间 毫秒
 	WebRoot         string   `json:"web_root"`          //静态资源文件根目录
+	MongoHost       string   `json:"mongo_host"`        //mongodb配置
 }
 
 //全局单例配置

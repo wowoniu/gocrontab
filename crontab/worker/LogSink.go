@@ -23,7 +23,7 @@ func LoadLog() (err error) {
 		database   *mongo.Database
 		collection *mongo.Collection
 	)
-	if client, err = mongo.Connect(context.TODO(), "mongodb://127.0.0.1:27017"); err != nil {
+	if client, err = mongo.Connect(context.TODO(), G_config.MongoHost); err != nil {
 		return
 	}
 	database = client.Database("cron")

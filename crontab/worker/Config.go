@@ -9,6 +9,7 @@ type Config struct {
 	EtcdEndpoints   []string `json:"etcd_endpoints"`    //etcd 集群
 	EtcdDialTimeout int      `json:"etcd_dial_timeout"` //etcd连接超时时间 毫秒
 	ExecuteShell    string   `json:"execute_shell"`     //解析命令的shell
+	MongoHost       string   `json:"mongo_host"`        //mongodb配置
 }
 
 var G_config *Config

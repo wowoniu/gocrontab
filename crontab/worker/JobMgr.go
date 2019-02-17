@@ -117,7 +117,7 @@ func (this *JobMgr) WatchJobs() {
 					//任务删除
 					jobName = common.ExtractJobName(string(watchEvent.Kv.Key))
 					job = &common.Job{
-						Name: jobName,
+						Id: jobName,
 					}
 					//构造变更事件
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_DELETE, job)
@@ -167,7 +167,7 @@ func (this *JobMgr) WatchKill() {
 				case mvccpb.PUT:
 					//强杀
 					job = &common.Job{
-						Name: jobName,
+						Id: jobName,
 					}
 					//构造强杀事件
 					jobEvent = common.BuildJobEvent(common.JOB_EVENT_KILL, job)

@@ -15,5 +15,8 @@
   "etcd_dial_timeout":10,
 
   "静态文件根目录":"站点webroot",
-  "web_root":"./webroot"
+  "web_root":"./webroot",
+
+  "mongo配置":"如:mongodb://127.0.0.1:27017",
+  "mongo_host":"mongodb://127.0.0.1:27017"
 }
