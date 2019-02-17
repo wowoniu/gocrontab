@@ -10,6 +10,9 @@ const (
 	//ETC中 任务分布式锁的目录(键值前缀)
 	JOB_LOCK_DIR = "/cron/lock/"
 
+	//ETCD 中服务发现与注册的目录(键值前缀)
+	JOB_REGISTER_DIR = "/cron/register/"
+
 	//ETCD中任务的变更事件 保存事件
 	JOB_EVENT_SAVE = 1
 

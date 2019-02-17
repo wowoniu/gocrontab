@@ -43,6 +43,12 @@ func main() {
 		return
 	}
 
+	//加载服务获取模块
+	if err = master.LoadService(); err != nil {
+		checkErr(err)
+		return
+	}
+
 	for {
 		time.Sleep(100 * time.Millisecond)
 	}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>分布式任务-健康节点</title>
+    <script src="/assets/jquery.3.3.1.js"></script>
+    <script src="/assets/jq-paginator.min.js"></script>
+    <link href="/assets/bootstrap.min.css" rel="stylesheet"></head>
+    <script src="/assets/bootstrap.min.js"></script>
+    <script src="/assets/cron.js"></script>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h1>CRON管理后台<small>分布式任务管理系统</small></h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:20px;">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table table-striped JS-job-container">
+                            <thead>
+                            <tr>
+                                <th>节点名称</th>
+                                <th>节点IP</th>
+                                <th>加入时间</th>
+                                <th>节点标识</th>
+                            </tr>
+                            </thead>
+                            <tbody class="JS-worker-list">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="JS-page-box pagination"></div>
+        </div>
+
+
+        <div class="alert JS-alert" role="alert" style="width:100%;display: none;;position: fixed;bottom:0px;">提示信息</div>
+    </div>
+
+
+
+
+
+
+    <script>
+        $(function () {
+            new CRON().renderWorker()
+        });
+    </script>
+</body>
+</html>

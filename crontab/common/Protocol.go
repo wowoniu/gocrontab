@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gorhill/cronexpr"
+	"net"
 	"strings"
 	"time"
 )
@@ -71,6 +72,13 @@ type JobLog struct {
 	EndTime      int64  `bson:"end_time"`
 }
 
+type Worker struct {
+	Name      string `json:"name"`
+	Ip        string `json:"ip"`
+	StartTime int64  `json:"start_time"`
+	Flag      string `json:"flag"`
+}
+
 //job JSON反序列化
 func UnpackJob(data []byte) (job *Job, err error) {
 	job = &Job{}
@@ -95,4 +103,28 @@ func BuildJobEvent(eventType int, job *Job) *JobEvent {
 		EventType: eventType,
 		Job:       job,
 	}
+}
+
+func GetLocalIp() (ip string, err error) {
+	var (
+		addrs   []net.Addr
+		address net.Addr
+	)
+	addrs, err = net.InterfaceAddrs()
+
+	if err != nil {
+		return
+	}
+
+	for _, address = range addrs {
+		// 检查ip地址判断是否回环地址
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				ip = ipnet.IP.String()
+				return
+			}
+		}
+	}
+	err = ERR_NO_NET_INTERFACE_FOUND
+	return
 }

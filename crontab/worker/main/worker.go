@@ -44,6 +44,12 @@ func main() {
 		return
 	}
 
+	//服务注册
+	if err = worker.LoadRegister(); err != nil {
+		checkErr(err)
+		return
+	}
+
 	for {
 		time.Sleep(1 * time.Second)
 	}

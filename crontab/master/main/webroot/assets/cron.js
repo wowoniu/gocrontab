@@ -64,10 +64,10 @@ CRON.prototype={
             for (var i=0;i<records.length;i++){
                 html+="<tr data-name='"+records[i]["JobName"]+"'><td>"+records[i]['JobName']+"</td>"+
                     "<td>"+records[i]['Command']+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['PlanTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['ScheduleTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['StartTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['EndTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['PlanTime']/1000/1000,"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['ScheduleTime']/1000/1000,"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['StartTime']/1000/1000,"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['EndTime']/1000/1000,"yy/MM/dd hh:mm:ss")+"</td>"+
                     "<td>"+context.timeDiff(records[i]['StartTime'],records[i]['EndTime'])+"</td>"+
                     "<td>"+records[i]['Err']+"</td>"+
                     "<td><button class='btn btn-info JS-output-view' data-output='"+context.htmlEncode(records[i]['Output'])+"'>查看</button></td>"+
@@ -76,6 +76,29 @@ CRON.prototype={
             $('.JS-job-list').html(html)
             context.renderPage(context.totalPage,context.currentPage,context.renderLog)
             context.onLogOutputView()
+        })
+    },
+
+    renderWorker:function(){
+        var context=this;
+        this.api.worker(function(data){
+            context.totalCount=data['count']
+            context.totalPage=Math.ceil(context.totalCount/context.pageSize)
+            var records=data['data']
+            var html="";
+            for (var i=0;i<records.length;i++){
+                html+="<tr>"+
+                    "<td>"+records[i]["name"]+"</td>"+
+                    "<td>"+records[i]['ip']+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['start_time']*1000,"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+records[i]["flag"]+"</td>"+
+                    "</tr>";
+            }
+            console.log("html",html)
+            //context.renderPage(context.totalPage,context.currentPage,context.renderList)
+            $('.JS-worker-list').html(html)
+        },function(err){
+            console.log("XX",err)
         })
     },
 
@@ -217,7 +240,7 @@ CRON.prototype={
 
     },
     timeFormat:function(timestamp,fmt){
-            var dateObj=new Date(timestamp/1000/1000);
+            var dateObj=new Date(timestamp);
             var o = {
                 "M+" : dateObj.getMonth()+1,                 //月份
                 "d+" : dateObj.getDate(),                    //日
@@ -288,6 +311,9 @@ Api.prototype={
     kill:function(jobName,successCallback,errCallback){
         this._request("kill",{"name":jobName},successCallback,errCallback)
     },
+    worker:function(successCallback,errCallback){
+        this._request("workerlist",{},successCallback,errCallback)
+    },
     _request:function(api,data,successCallback,errCallback){
         var context=this;
         if(context.requestLock)return
@@ -299,7 +325,7 @@ Api.prototype={
             success:function(response){
                 context.requestLock=false;
                 res=JSON.parse(response)
-                if(res.errno==0){
+                if(res.errno===0){
                     if(successCallback)successCallback(res['data'])
                 }else{
                     if(errCallback)errCallback(res['msg'])

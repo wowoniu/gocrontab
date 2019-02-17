@@ -29,6 +29,7 @@ func InitApiServer() (err error) {
 	mux.HandleFunc("/job/list", handleJobList)
 	mux.HandleFunc("/job/kill", handleJobKill)
 	mux.HandleFunc("/job/log", handleJobLog)
+	mux.HandleFunc("/job/workerlist", handleWorkerList)
 	//静态文件路由
 	mux.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir(G_config.WebRoot))))
 	//监听设置
@@ -156,6 +157,21 @@ func handleJobLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	output(w, 0, "success", common.ApiListData{totalCount, logList})
+}
+
+//获取健康的节点
+func handleWorkerList(w http.ResponseWriter, r *http.Request) {
+	var (
+		err        error
+		workerList []*common.Worker
+		count      int64
+	)
+
+	if workerList, count, err = G_service.GetWorkerList(); err != nil {
+		output(w, 10600, "节点获取失败:"+err.Error(), nil)
+		return
+	}
+	output(w, 0, "success", common.ApiListData{count, workerList})
 }
 
 func output(w http.ResponseWriter, errno int, msg string, data interface{}) {
