@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"gocrontab/crontab/common"
-	"os/exec"
 	"time"
 )
 
@@ -24,7 +23,6 @@ func LoadJobExecutor() {
 func (this *JobExecutor) ExecJob(jobExecuteInfo *common.JobExecuteInfo) {
 	go func() {
 		var (
-			cmd           *exec.Cmd
 			output        []byte
 			err           error
 			startTime     time.Time
@@ -36,34 +34,35 @@ func (this *JobExecutor) ExecJob(jobExecuteInfo *common.JobExecuteInfo) {
 		)
 		//获取锁对象
 		jobLock = CreateJobLock(jobExecuteInfo.Job.Name, G_jobmgr.Kv, G_jobmgr.Lease)
+		defer jobLock.Unlock()
 		//执行加锁
-		if err = jobLock.TryLock(); err != nil {
-			//加锁失败
-			startTime = time.Now()
-			jobExecuteRes = &common.JobExecuteResult{
-				JobExecuteInfo: jobExecuteInfo,
-				Err:            err,
-				StartTime:      startTime,
-				EndTime:        startTime,
-			}
+		err = jobLock.TryLock()
+		startTime = time.Now()
+		jobExecuteRes = &common.JobExecuteResult{
+			JobExecuteInfo: jobExecuteInfo,
+			StartTime:      startTime,
+			OutPut:         make([]byte, 0),
+		}
+		if err != nil {
+			//上锁失败
+			jobExecuteRes.EndTime = time.Now()
 		} else {
-			//加锁成功
-			startTime = time.Now()
+			//上锁成功
 			cancelCtx, cancelFunc = context.WithCancel(context.TODO())
 			jobExecuteInfo.CancelFunc = cancelFunc
 			jobExecuteInfo.CancelCtx = cancelCtx
-			cmd = exec.CommandContext(cancelCtx, G_config.ExecuteShell, "-c", jobExecuteInfo.Job.Command)
-			//命令执行 并获取输出
-			output, err = cmd.CombinedOutput()
+			//执行
+			switch jobExecuteInfo.Job.Type {
+			case common.JOB_TYPE_SHELL:
+				output, err = G_shellExecutor.Exec(cancelCtx, jobExecuteInfo.Job.Command)
+			case common.JOB_TYPE_CURL:
+				output, err = G_webExecutor.Exec(cancelCtx, jobExecuteInfo.Job.Command)
+			}
 			endTime = time.Now()
 			//命令结果
-			jobExecuteRes = &common.JobExecuteResult{
-				JobExecuteInfo: jobExecuteInfo,
-				OutPut:         output,
-				Err:            err,
-				StartTime:      startTime,
-				EndTime:        endTime,
-			}
+			jobExecuteRes.OutPut = output
+			jobExecuteRes.Err = err
+			jobExecuteRes.EndTime = endTime
 		}
 		//执行结果写入调度器管道
 		G_scheduler.PushJobResult(jobExecuteRes)

@@ -18,4 +18,10 @@ const (
 
 	//任务强杀事件
 	JOB_EVENT_KILL = 3
+
+	//任务类型:shell命令任务
+	JOB_TYPE_SHELL = 1
+
+	//任务类型:远程WEB触发式任务
+	JOB_TYPE_CURL = 2
 )

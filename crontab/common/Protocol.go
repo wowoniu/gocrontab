@@ -10,11 +10,11 @@ import (
 
 //计划任务
 type Job struct {
-	Id       string `json:"id"` //方便分页查询 用ID做键值
 	Name     string `json:"name"`
 	Command  string `json:"command"`
 	CronExpr string `json:"cron_expr"`
 	Desc     string `json:"desc"`
+	Type     int    `json:"type"`
 }
 
 //接口响应

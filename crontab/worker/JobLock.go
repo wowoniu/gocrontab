@@ -44,13 +44,9 @@ func (this *JobLock) TryLock() (err error) {
 	cancelCtx, cancelFunc = context.WithCancel(context.TODO())
 	this.LeaseId = leaseId
 	this.CancelFunc = cancelFunc
-	//释放租约资源 防止死锁
-	defer func() {
-		cancelFunc()                               //取消自动续租
-		this.Lease.Revoke(context.TODO(), leaseId) //租约释放
-	}()
 	//自动续租
 	if leaseKeepAliveRes, err = this.Lease.KeepAlive(cancelCtx, leaseId); err != nil {
+		this.checkError()
 		return
 	}
 	//开启协程 读取需要channel数据
@@ -79,6 +75,7 @@ func (this *JobLock) TryLock() (err error) {
 		Else(clientv3.OpGet(lockKey))
 	//事务提交
 	if txnRes, err = txn.Commit(); err != nil {
+		this.checkError()
 		return
 	}
 
@@ -90,6 +87,7 @@ func (this *JobLock) TryLock() (err error) {
 		//抢锁失败
 		this.IsLocked = false
 		err = common.ERR_LOCK_ALREADY_REQUIRED
+		this.checkError()
 	}
 
 	return
@@ -99,6 +97,16 @@ func (this *JobLock) TryLock() (err error) {
 func (this *JobLock) Unlock() {
 	if this.IsLocked {
 		this.CancelFunc()
+		this.Lease.Revoke(context.TODO(), this.LeaseId)
+	}
+}
+
+//出现错误释放资源
+func (this *JobLock) checkError() {
+	if this.CancelFunc != nil {
+		this.CancelFunc()
+	}
+	if this.LeaseId > 0 {
 		this.Lease.Revoke(context.TODO(), this.LeaseId)
 	}
 }

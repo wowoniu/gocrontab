@@ -196,7 +196,6 @@ func (this *Scheduler) BuildJobLog(jobExecuteRes *common.JobExecuteResult) *comm
 		ScheduleTime: jobExecuteRes.JobExecuteInfo.RealTime.Unix(),
 		StartTime:    jobExecuteRes.StartTime.Unix(),
 		EndTime:      jobExecuteRes.EndTime.Unix(),
-		JobId:        jobExecuteRes.JobExecuteInfo.Job.Name,
 	}
 	if jobExecuteRes.Err != nil {
 		res.Err = jobExecuteRes.Err.Error()

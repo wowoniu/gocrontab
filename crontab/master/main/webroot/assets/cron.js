@@ -8,6 +8,12 @@
     this.requestLock=false;
     this.pageInited=false;
     this.pageLastKey=0;
+    this.labelMap={
+        type:{
+            1:"shell命令",
+            2:"WEB触发"
+        }
+    }
     this.init()
 }
 
@@ -26,6 +32,7 @@ CRON.prototype={
             for (var i=0;i<records.length;i++){
                 context.pageLastKey=records[i]['id']
                 html+="<tr data-name='"+records[i]["name"]+"'><td>"+records[i]['name']+"</td>"+
+                    "<td data-type='"+records[i]['type']+"'>"+context.label('type',records[i]['type'])+"</td>"+
                     "<td>"+records[i]['command']+"</td>"+
                     "<td>"+records[i]['cron_expr']+"</td>"+
                     "<td>"+records[i]['desc']+"</td>"+
@@ -110,7 +117,7 @@ CRON.prototype={
             $('#JS-edit-save').off('click').click(function () {
                     //保存
                     var job={
-                        "id":context.newJobKey.toString(),
+                        "type":parseInt($('#edit-type').val()),
                         "name":$('#edit-name').val(),
                         "command":$('#edit-command').val(),
                         "cron_expr":$('#edit-cronexpr').val(),
@@ -135,15 +142,16 @@ CRON.prototype={
         var context=this;
         $('.JS-job-container').on("click",'.JS-job-edit',function(event){
             $('#edit-name').val($(this).parents('tr').find('td').eq(0).html()).attr('readonly',true)
-            $('#edit-old-name').val($(this).parents('tr').find('td').eq(0).html())
-            $('#edit-command').val($(this).parents('tr').find('td').eq(1).html())
-            $('#edit-cronexpr').val($(this).parents('tr').find('td').eq(2).html())
-            $('#edit-desc').val($(this).parents('tr').find('td').eq(3).html())
+            $('#edit-type').val($(this).parents('tr').find('td').eq(1).data('type'))
+            $('#edit-command').val($(this).parents('tr').find('td').eq(2).html())
+            $('#edit-cronexpr').val($(this).parents('tr').find('td').eq(3).html())
+            $('#edit-desc').val($(this).parents('tr').find('td').eq(4).html())
             $('.JS-job-title').html("编辑任务");
             $('#edit-modal').modal("show")
             $('#JS-edit-save').off('click').click(function () {
                 //保存
                 var job={
+                    "type":parseInt($('#edit-type').val()),
                     "name":$('#edit-name').val(),
                     "command":$('#edit-command').val(),
                     "cron_expr":$('#edit-cronexpr').val(),
@@ -172,8 +180,9 @@ CRON.prototype={
             }
             var jobName=$(this).parents('tr').data('name')
             context.api.delete(jobName,function(response){
+                console.log(response)
                 context.showTips("删除成功",function () {
-                    window.location.reload()
+                    //window.location.reload()
                 })
             },function(errMsg){
                 context.showTips(errMsg,"","danger")
@@ -223,7 +232,14 @@ CRON.prototype={
         var r = window.location.search.substr(1).match(reg);  //匹配目标参数
         if (r != null) return decodeURIComponent(r[2]);
         return null; //返回参数值
+    },
+    label:function(name,labelKey){
+        if(this.labelMap[name]&&this.labelMap[name][labelKey]){
+            return this.labelMap[name][labelKey]
+        }
+        return "--"
     }
+
 }
 
 var Api=function (apiRoot) {

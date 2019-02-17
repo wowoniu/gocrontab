@@ -9,5 +9,8 @@
   "execute_shell":"E:\\cygwin\\bin\\bash.exe",
 
   "mongo配置":"如:mongodb://127.0.0.1:27017",
-  "mongo_host":"mongodb://127.0.0.1:27017"
+  "mongo_host":"mongodb://127.0.0.1:27017",
+
+  "WEB CURL定时任务超时时间(包含连接时间)":"单位毫秒",
+  "http_timeout":5000
 }

@@ -31,6 +31,7 @@
                             <thead>
                             <tr>
                                 <th>任务名称</th>
+                                <th>类型</th>
                                 <th>命令</th>
                                 <th>表达式</th>
                                 <th>描述</th>
@@ -70,11 +71,18 @@
                             <input type="text" class="form-control" id="edit-name" placeholder="任务名称">
                         </div>
                         <div class="form-group">
-                            <label for="edit-name">任务命令</label>
+                            <label for="edit-name">任务类型</label>
+                            <select class="form-control" id="edit-type">
+                                <option value="1">shell命令</option>
+                                <option value="2">WEB触发</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-name">任务命令/远程地址</label>
                             <input type="text" class="form-control" id="edit-command" placeholder="任务命令">
                         </div>
                         <div class="form-group">
-                            <label for="edit-name">cron表达式</label>
+                            <label for="edit-name">cron表达式(秒 分 时 日 月 周 年)</label>
                             <input type="text" class="form-control" id="edit-cronexpr" placeholder="cron表达式">
                         </div>
                         <div class="form-group">
