@@ -204,7 +204,7 @@ CRON.prototype={
         var context=this;
         $('.JS-job-list').on("click",'.JS-output-view',function(event){
             $('#logview-modal').modal("show");
-            $('.JS-log-detail').html($(this).data('output'));
+            $('.JS-log-detail').html("<pre>"+$(this).data('output')+"</pre>");
         });
     },
 
