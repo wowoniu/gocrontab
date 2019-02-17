@@ -204,7 +204,7 @@ CRON.prototype={
             context.api.delete(jobName,function(response){
                 console.log(response)
                 context.showTips("删除成功",function () {
-                    //window.location.reload()
+                    window.location.reload()
                 })
             },function(errMsg){
                 context.showTips(errMsg,"","danger")
@@ -227,7 +227,8 @@ CRON.prototype={
         var context=this;
         $('.JS-job-list').on("click",'.JS-output-view',function(event){
             $('#logview-modal').modal("show");
-            $('.JS-log-detail').html("<pre>"+$(this).data('output')+"</pre>");
+            $('.JS-log-detail').html($(this).data('output'));
+            // $('.JS-log-detail').html("<pre>"+$(this).data('output')+"</pre>");
         });
     },
 
@@ -286,7 +287,18 @@ CRON.prototype={
         return "--"
     },
     htmlEncode:function(str){
-        return $('<span/>').text( str ).html();
+       // return $('<span/>').text( str ).html();
+        var s = "";
+        if(str.length == 0) return "";
+        s = str.replace(/&/g,"&");
+        s = s.replace(/</g,"&lt;");
+        s = s.replace(/>/g,"&gt;");
+        s = s.replace(/ /g,"&nbsp;");
+        s = s.replace(/\'/g,"\\'");
+        s= s.replace(/"/g,"\"")
+        // s = s.replace(/\"/g,"\\"");
+
+        return s;
     },
 
 }
