@@ -28,12 +28,13 @@
                             <tr>
                                 <th>任务名称</th>
                                 <th>命令</th>
-                                <th>输出</th>
-                                <th>错误</th>
                                 <th>计划时间</th>
                                 <th>调度时间</th>
                                 <th>开始时间</th>
                                 <th>结束时间</th>
+                                <th>耗时</th>
+                                <th>错误</th>
+                                <th>输出</th>
                             </tr>
                             </thead>
                             <tbody class="JS-job-list">
@@ -50,6 +51,24 @@
 
         <div class="alert JS-alert" role="alert" style="width:100%;display: none;;position: fixed;bottom:0px;">提示信息</div>
     </div>
+
+
+
+
+
+    <div class="modal fade" tabindex="-1"  id="logview-modal" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title JS-job-title">任务输出</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-justify JS-log-detail" style="max-height: 300px;overflow-y: scroll;"></div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
 
     <script>

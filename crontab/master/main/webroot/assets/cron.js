@@ -64,19 +64,18 @@ CRON.prototype={
             for (var i=0;i<records.length;i++){
                 html+="<tr data-name='"+records[i]["JobName"]+"'><td>"+records[i]['JobName']+"</td>"+
                     "<td>"+records[i]['Command']+"</td>"+
-                    "<td>"+records[i]['Output']+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['PlanTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['ScheduleTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['StartTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeFormat(records[i]['EndTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
+                    "<td>"+context.timeDiff(records[i]['StartTime'],records[i]['EndTime'])+"</td>"+
                     "<td>"+records[i]['Err']+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['PlanTime'],"yyyy-MM-dd hh:mm:ss")+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['ScheduleTime'],"yyyy-MM-dd hh:mm:ss")+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['StartTime'],"yyyy-MM-dd hh:mm:ss")+"</td>"+
-                    "<td>"+context.timeFormat(records[i]['EndTime'],"yyyy-MM-dd hh:mm:ss")+"</td>"+
+                    "<td><button class='btn btn-info JS-output-view' data-output='"+escape(records[i]['Output'])+"'>查看</button></td>"+
                     "</tr>";
             }
             $('.JS-job-list').html(html)
             context.renderPage(context.totalPage,context.currentPage,context.renderLog)
-            context.onEdit()
-            context.onDelete()
-            context.onKill()
+            context.onLogOutputView()
         })
     },
 
@@ -201,6 +200,14 @@ CRON.prototype={
         })
     },
 
+    onLogOutputView:function(){
+        var context=this;
+        $('.JS-job-list').on("click",'.JS-output-view',function(event){
+            $('#logview-modal').modal("show");
+            $('.JS-log-detail').html($(this).data('output'));
+        });
+    },
+
     showTips:function(msg,callback,level){
         level=(level===undefined||level===null||level=="")?"alert-success":("alert-"+level);
         $('.JS-alert').addClass(level).html(msg).fadeIn(1100,function(){
@@ -210,7 +217,7 @@ CRON.prototype={
 
     },
     timeFormat:function(timestamp,fmt){
-            var dateObj=new Date(timestamp*1000);
+            var dateObj=new Date(timestamp/1000/1000);
             var o = {
                 "M+" : dateObj.getMonth()+1,                 //月份
                 "d+" : dateObj.getDate(),                    //日
@@ -226,6 +233,22 @@ CRON.prototype={
                 if(new RegExp("("+ k +")").test(fmt))
                     fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
             return fmt;
+    },
+    timeDiff:function(nanoTimeStart,nanoTimeEnd){
+        var microSeconds=(nanoTimeEnd-nanoTimeStart)/1000/1000
+        var seconds=microSeconds/1000
+        var minutes=seconds/60
+        var hours=minutes/60
+        if (hours>=1){
+            return hours+"小时"
+        }
+        if (minutes>=1){
+            return minutes+"分钟"
+        }
+        if (seconds>=1){
+            return seconds+"秒"
+        }
+        return microSeconds.toFixed(2)+"毫秒"
     },
     getUrlParam:function(name) {
         var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象

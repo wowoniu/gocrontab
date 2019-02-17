@@ -192,10 +192,10 @@ func (this *Scheduler) BuildJobLog(jobExecuteRes *common.JobExecuteResult) *comm
 		JobName:      jobExecuteRes.JobExecuteInfo.Job.Name,
 		Command:      jobExecuteRes.JobExecuteInfo.Job.Command,
 		Output:       string(jobExecuteRes.OutPut),
-		PlanTime:     jobExecuteRes.JobExecuteInfo.PlanTime.Unix(),
-		ScheduleTime: jobExecuteRes.JobExecuteInfo.RealTime.Unix(),
-		StartTime:    jobExecuteRes.StartTime.Unix(),
-		EndTime:      jobExecuteRes.EndTime.Unix(),
+		PlanTime:     jobExecuteRes.JobExecuteInfo.PlanTime.UnixNano(),
+		ScheduleTime: jobExecuteRes.JobExecuteInfo.RealTime.UnixNano(),
+		StartTime:    jobExecuteRes.StartTime.UnixNano(),
+		EndTime:      jobExecuteRes.EndTime.UnixNano(),
 	}
 	if jobExecuteRes.Err != nil {
 		res.Err = jobExecuteRes.Err.Error()
