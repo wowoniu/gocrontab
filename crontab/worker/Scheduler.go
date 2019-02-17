@@ -183,7 +183,9 @@ func (this *Scheduler) HandleJobResult(jobExecuteRes *common.JobExecuteResult) {
 	//从正在执行队列中移除任务
 	delete(this.JobExecuteingTable, jobExecuteRes.JobExecuteInfo.Job.Name)
 	//日志存储
-	G_log.PushLog(this.BuildJobLog(jobExecuteRes))
+	if jobExecuteRes.Err != common.ERR_LOCK_ALREADY_REQUIRED {
+		G_log.PushLog(this.BuildJobLog(jobExecuteRes))
+	}
 	//fmt.Println(time.Now(), jobExecuteRes.JobExecuteInfo.Job.Name, "任务执行完毕:", string(jobExecuteRes.OutPut), jobExecuteRes.Err,"耗时:",jobExecuteRes.EndTime.Sub(jobExecuteRes.StartTime))
 }
 

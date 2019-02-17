@@ -70,7 +70,7 @@ CRON.prototype={
                     "<td>"+context.timeFormat(records[i]['EndTime'],"yy/MM/dd hh:mm:ss")+"</td>"+
                     "<td>"+context.timeDiff(records[i]['StartTime'],records[i]['EndTime'])+"</td>"+
                     "<td>"+records[i]['Err']+"</td>"+
-                    "<td><button class='btn btn-info JS-output-view' data-output='"+escape(records[i]['Output'])+"'>查看</button></td>"+
+                    "<td><button class='btn btn-info JS-output-view' data-output='"+context.htmlEncode(records[i]['Output'])+"'>查看</button></td>"+
                     "</tr>";
             }
             $('.JS-job-list').html(html)
@@ -240,13 +240,13 @@ CRON.prototype={
         var minutes=seconds/60
         var hours=minutes/60
         if (hours>=1){
-            return hours+"小时"
+            return hours.toFixed(2)+"小时"
         }
         if (minutes>=1){
-            return minutes+"分钟"
+            return minutes.toFixed(2)+"分钟"
         }
         if (seconds>=1){
-            return seconds+"秒"
+            return seconds.toFixed(2)+"秒"
         }
         return microSeconds.toFixed(2)+"毫秒"
     },
@@ -261,7 +261,10 @@ CRON.prototype={
             return this.labelMap[name][labelKey]
         }
         return "--"
-    }
+    },
+    htmlEncode:function(str){
+        return $('<span/>').text( str ).html();
+    },
 
 }
 

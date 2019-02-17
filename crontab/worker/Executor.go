@@ -45,6 +45,8 @@ func (this *JobExecutor) ExecJob(jobExecuteInfo *common.JobExecuteInfo) {
 		}
 		if err != nil {
 			//上锁失败
+			//fmt.Println("抢锁失败")
+			err = common.ERR_LOCK_ALREADY_REQUIRED
 			jobExecuteRes.EndTime = time.Now()
 		} else {
 			//上锁成功
@@ -61,10 +63,10 @@ func (this *JobExecutor) ExecJob(jobExecuteInfo *common.JobExecuteInfo) {
 			endTime = time.Now()
 			//命令结果
 			jobExecuteRes.OutPut = output
-			jobExecuteRes.Err = err
 			jobExecuteRes.EndTime = endTime
 		}
 		//执行结果写入调度器管道
+		jobExecuteRes.Err = err
 		G_scheduler.PushJobResult(jobExecuteRes)
 		return
 	}()
