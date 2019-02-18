@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>分布式任务</title>
+    <script src="/assets/jquery.3.3.1.js"></script>
+    <script src="/assets/jq-paginator.min.js"></script>
+    <link href="/assets/bootstrap.min.css" rel="stylesheet"></head>
+    <script src="/assets/bootstrap.min.js"></script>
+    <script src="/assets/cron.js"></script>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h1>CRON管理后台<small>分布式任务管理系统</small></h1>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <button  type="button" class="btn btn-info JS-job-add">新建任务</button>
+                <a  type="button" class="btn btn-info" href="/worker.html" target="_blank">worker节点</a>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:20px;">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table table-striped JS-job-container">
+                            <thead>
+                            <tr>
+                                <th>任务名称</th>
+                                <th>类型</th>
+                                <th>命令</th>
+                                <th>表达式</th>
+                                <th>描述</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody class="JS-job-list">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="JS-page-box pagination"></div>
+        </div>
+
+
+        <div class="alert JS-alert" role="alert" style="width:100%;display: none;;position: fixed;bottom:0px;">提示信息</div>
+    </div>
+
+
+
+
+    <div class="modal fade" tabindex="-1"  id="edit-modal" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title JS-job-title">编辑任务</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="edit-name">任务名称</label>
+                            <input type="text" class="form-control" id="edit-name" placeholder="任务名称">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-name">任务类型</label>
+                            <select class="form-control" id="edit-type">
+                                <option value="1">shell命令</option>
+                                <option value="2">WEB触发</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-name">任务命令/远程地址</label>
+                            <input type="text" class="form-control" id="edit-command" placeholder="任务命令">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-name">cron表达式(秒 分 时 日 月 周 年)</label>
+                            <input type="text" class="form-control" id="edit-cronexpr" placeholder="cron表达式">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-name">任务描述</label>
+                            <textarea class="form-control" id="edit-desc"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="JS-edit-save">保存</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+
+
+
+
+    <script>
+        $(function () {
+            new CRON().renderList()
+        });
+    </script>
+</body>
+</html>

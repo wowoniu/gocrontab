@@ -1,0 +1,54 @@
+version: "2"
+services: 
+    master:
+        image: alpine
+        expose:
+           - 8080
+        ports:
+           - 8080:8080
+        volumes:
+           - ./config/master:/data
+        links:
+           - mongodb:mongodb
+           - etcd:etcd
+        command: /data/master -config=/data/master.json
+    etcd:
+        image: quay.io/coreos/etcd:v3.3.12
+        expose:
+            - 2379
+            - 2380
+        ports:
+          - 2379:2379
+          - 2380:2380
+        command: /usr/local/bin/etcd --name s1 --data-dir /etcd-data --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://0.0.0.0:2379 --listen-peer-urls http://0.0.0.0:2380 --initial-advertise-peer-urls http://0.0.0.0:2380 --initial-cluster s1=http://0.0.0.0:2380 --initial-cluster-token tkn --initial-cluster-state new
+    mongodb:
+        image: mongo:3.4
+        expose:
+            - 27017
+        ports:
+          - 27017:27017
+    worker1:
+        image: alpine
+        volumes:
+           - ./config/worker1:/data
+        command: /data/worker -config=/data/worker.json
+        links:
+           - mongodb:mongodb
+           - etcd:etcd
+    worker2:
+        image: alpine
+        volumes:
+        - ./config/worker2:/data
+        command: /data/worker -config=/data/worker.json
+        links:
+          - mongodb:mongodb
+          - etcd:etcd
+    worker3:
+        image: alpine
+        volumes:
+        - ./config/worker3:/data
+        command: /data/worker -config=/data/worker.json
+        links:
+          - mongodb:mongodb
+          - etcd:etcd
+

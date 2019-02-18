@@ -1,0 +1,19 @@
+{
+  "当前节点的名称":"用于后端节点列表展示",
+  "WORKER_NAME":"worker2",
+
+  "ETCD集群":"集群IP:端口",
+  "etcd_endpoints":["etcd:2379"],
+
+  "ETCD连接超时时间":"单位毫秒",
+  "etcd_dial_timeout":5000,
+
+  "执行命令的shell":"如 /usr/bin/bash",
+  "execute_shell":"/bin/sh",
+
+  "mongo配置":"如:mongodb://127.0.0.1:27017",
+  "mongo_host":"mongodb://mongodb:27017",
+
+  "WEB CURL定时任务超时时间(包含连接时间)":"单位毫秒",
+  "http_timeout":5000
+}
