@@ -317,6 +317,7 @@ CRON.prototype={
         var html="<option value='不限分组'>不限分组</option><option value='默认分组'>默认分组</option>";
         for(var i=0;i<rows.length;i++){
             if($.inArray(rows[i]["group"],group)<0){
+                group.push(rows[i]['group'])
                 html+=("<option value='"+rows[i]["group"]+"'>"+rows[i]["group"]+"</option>");
             }
         }
