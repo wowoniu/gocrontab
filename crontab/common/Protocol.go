@@ -12,6 +12,7 @@ import (
 //计划任务
 type Job struct {
 	Name     string `json:"name"`
+	Group    string `json:"group"`
 	Command  string `json:"command"`
 	CronExpr string `json:"cron_expr"`
 	Desc     string `json:"desc"`
@@ -70,10 +71,15 @@ type JobLog struct {
 	ScheduleTime int64  `bson:"schedule_time"`
 	StartTime    int64  `bson:"start_time"`
 	EndTime      int64  `bson:"end_time"`
+	WorkerName   string `bson:"worker_name"`
+	WorkerGroup  string `bson:"worker_group"`
+	WorkerFlag   string `bson:"worker_flag"`
+	WorkerIp     string `bson:"worker_ip"`
 }
 
 type Worker struct {
 	Name      string `json:"name"`
+	Group     string `json:"group"`
 	Ip        string `json:"ip"`
 	StartTime int64  `json:"start_time"`
 	Flag      string `json:"flag"`

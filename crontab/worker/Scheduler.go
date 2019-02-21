@@ -17,7 +17,7 @@ var G_scheduler *Scheduler
 
 func LoadScheduler() (err error) {
 	G_scheduler = &Scheduler{
-		JobEventChan:         make(chan *common.JobEvent, 1),
+		JobEventChan:         make(chan *common.JobEvent, 1000),
 		JobPlanTable:         make(map[string]*common.JobSchedulePlan),
 		JobExecuteingTable:   make(map[string]*common.JobExecuteInfo),
 		JobExecuteResultChan: make(chan *common.JobExecuteResult, 1000),
@@ -66,6 +66,7 @@ func (this *Scheduler) trySchedule() (afterTime time.Duration) {
 	)
 	now = time.Now()
 	if len(this.JobPlanTable) == 0 {
+		//当前无可执行的任务 睡眠1s
 		afterTime = 1 * time.Second
 		return
 	}
@@ -113,8 +114,10 @@ func (this *Scheduler) HandleJobEvent(jobEvent *common.JobEvent) {
 		if jobSchedulePlan, err = this.BuildSchedulPlan(jobEvent.Job); err != nil {
 			return
 		}
-		//加入计划队列
-		this.JobPlanTable[jobEvent.Job.Name] = jobSchedulePlan
+		//由本机器调度 加入计划队列
+		if jobEvent.Job.Group == G_config.WorkerGroup || jobEvent.Job.Group == common.UNLIMIT_WORKER_GROUP_NAME {
+			this.JobPlanTable[jobEvent.Job.Name] = jobSchedulePlan
+		}
 	//任务强杀
 	case common.JOB_EVENT_KILL:
 		if jobExecuteInfo, jobExecuteing = this.JobExecuteingTable[jobEvent.Job.Name]; jobExecuteing {
@@ -198,6 +201,10 @@ func (this *Scheduler) BuildJobLog(jobExecuteRes *common.JobExecuteResult) *comm
 		ScheduleTime: jobExecuteRes.JobExecuteInfo.RealTime.UnixNano(),
 		StartTime:    jobExecuteRes.StartTime.UnixNano(),
 		EndTime:      jobExecuteRes.EndTime.UnixNano(),
+		WorkerName:   G_register.Worker.Name,
+		WorkerGroup:  G_register.Worker.Group,
+		WorkerFlag:   G_register.Worker.Flag,
+		WorkerIp:     G_register.Worker.Ip,
 	}
 	if jobExecuteRes.Err != nil {
 		res.Err = jobExecuteRes.Err.Error()

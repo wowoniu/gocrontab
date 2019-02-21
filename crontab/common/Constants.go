@@ -27,4 +27,10 @@ const (
 
 	//任务类型:远程WEB触发式任务
 	JOB_TYPE_CURL = 2
+
+	//默认worker分组名称
+	DEFAULT_WORKER_GROUP_NAME = "默认分组"
+
+	//任务执行不限分组
+	UNLIMIT_WORKER_GROUP_NAME = "不限分组"
 )

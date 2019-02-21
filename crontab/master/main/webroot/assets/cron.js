@@ -35,6 +35,7 @@ CRON.prototype={
                     "<td data-type='"+records[i]['type']+"'>"+context.label('type',records[i]['type'])+"</td>"+
                     "<td>"+records[i]['command']+"</td>"+
                     "<td>"+records[i]['cron_expr']+"</td>"+
+                    "<td>"+records[i]['group']+"</td>"+
                     "<td>"+records[i]['desc']+"</td>"+
                     "<td>"+
                     "<div class='btn-toolbar'>"+
@@ -69,6 +70,7 @@ CRON.prototype={
                     "<td>"+context.timeFormat(records[i]['StartTime']/1000/1000,"yy/MM/dd hh:mm:ss")+"</td>"+
                     "<td>"+context.timeFormat(records[i]['EndTime']/1000/1000,"yy/MM/dd hh:mm:ss")+"</td>"+
                     "<td>"+context.timeDiff(records[i]['StartTime'],records[i]['EndTime'])+"</td>"+
+                    "<td>"+records[i]['WorkerGroup']+"("+records[i]['WorkerName']+":"+records[i]["WorkerIp"]+")</td>"+
                     "<td>"+records[i]['Err']+"</td>"+
                     "<td><button class='btn btn-info JS-output-view' data-output='"+context.htmlEncode(records[i]['Output'])+"'>查看</button></td>"+
                     "</tr>";
@@ -88,6 +90,7 @@ CRON.prototype={
             var html="";
             for (var i=0;i<records.length;i++){
                 html+="<tr>"+
+                    "<td>"+records[i]["group"]+"</td>"+
                     "<td>"+records[i]["name"]+"</td>"+
                     "<td>"+records[i]['ip']+"</td>"+
                     "<td>"+context.timeFormat(records[i]['start_time']*1000,"yy/MM/dd hh:mm:ss")+"</td>"+
@@ -135,12 +138,16 @@ CRON.prototype={
             $('#edit-modal').find('input').val("")
             $('#edit-modal').find('input').val("")
             $('#edit-modal').find('textarea').val("")
-            $('#edit-modal').modal("show")
-            $('#JS-edit-save').off('click').click(function () {
+            //获取节点组别
+            context.api.worker(function(data){
+                context.parseGroup(data['data'])
+                $('#edit-modal').modal("show")
+                $('#JS-edit-save').off('click').click(function () {
                     //保存
                     var job={
                         "type":parseInt($('#edit-type').val()),
                         "name":$('#edit-name').val(),
+                        "group":$('#edit-group').val(),
                         "command":$('#edit-command').val(),
                         "cron_expr":$('#edit-cronexpr').val(),
                         "desc":$('#edit-desc').val()
@@ -158,6 +165,8 @@ CRON.prototype={
                     })
 
                 });
+            });
+
         })
     },
     onEdit:function(){
@@ -165,15 +174,17 @@ CRON.prototype={
         $('.JS-job-container').on("click",'.JS-job-edit',function(event){
             $('#edit-name').val($(this).parents('tr').find('td').eq(0).html()).attr('readonly',true)
             $('#edit-type').val($(this).parents('tr').find('td').eq(1).data('type'))
+            $('#edit-group').val($(this).parents('tr').find('td').eq(4).html())
             $('#edit-command').val($(this).parents('tr').find('td').eq(2).html())
             $('#edit-cronexpr').val($(this).parents('tr').find('td').eq(3).html())
-            $('#edit-desc').val($(this).parents('tr').find('td').eq(4).html())
+            $('#edit-desc').val($(this).parents('tr').find('td').eq(5).html())
             $('.JS-job-title').html("编辑任务");
             $('#edit-modal').modal("show")
             $('#JS-edit-save').off('click').click(function () {
                 //保存
                 var job={
                     "type":parseInt($('#edit-type').val()),
+                    "group":$('#edit-group').val(),
                     "name":$('#edit-name').val(),
                     "command":$('#edit-command').val(),
                     "cron_expr":$('#edit-cronexpr').val(),
@@ -300,6 +311,17 @@ CRON.prototype={
 
         return s;
     },
+
+    parseGroup:function(rows){
+        var group=[];
+        var html="<option value='不限分组'>不限分组</option><option value='默认分组'>默认分组</option>";
+        for(var i=0;i<rows.length;i++){
+            if($.inArray(rows[i]["group"],group)<0){
+                html+=("<option value='"+rows[i]["group"]+"'>"+rows[i]["group"]+"</option>");
+            }
+        }
+        $('#edit-group').html(html);
+    }
 
 }
 

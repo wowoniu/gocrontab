@@ -7,6 +7,8 @@ import (
 
 type Config struct {
 	WorkerName      string   `json:"worker_name"`          //当前节点名称
+	WorkerGroup     string   `json:"worker_group"`         //当前节点分组
+	WorkerFlag      string   `json:"worker_flag"`          //当节点随机标识 每次节点启动 随机生成
 	EtcdEndpoints   []string `json:"etcd_endpoints"`       //etcd 集群
 	EtcdDialTimeout int      `json:"etcd_dial_timeout"`    //etcd连接超时时间 毫秒
 	ExecuteShell    string   `json:"execute_shell"`        //解析命令的shell

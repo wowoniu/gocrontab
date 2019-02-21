@@ -16,6 +16,7 @@ type Register struct {
 	LeaseId    clientv3.LeaseID
 	CancelCtx  context.Context
 	CancelFunc context.CancelFunc
+	Worker     *common.Worker
 }
 
 var G_register *Register
@@ -91,7 +92,20 @@ func (this *Register) Register() (err error) {
 	workerFlag = this.createWorkerFlag()
 	registerKey = common.JOB_REGISTER_DIR + workerIp + ":" + workerFlag
 
-	if workerData, err = this.buildWorkerData(workerIp, workerFlag); err != nil {
+	this.Worker = &common.Worker{
+		Name:      G_config.WorkerName,
+		Ip:        workerIp,
+		Flag:      workerFlag,
+		StartTime: time.Now().Unix(),
+	}
+	if G_config.WorkerGroup == "" {
+		this.Worker.Group = common.DEFAULT_WORKER_GROUP_NAME
+	} else {
+		this.Worker.Group = G_config.WorkerGroup
+	}
+
+	//序列化
+	if workerData, err = this.buildWorkerData(this.Worker); err != nil {
 		return
 	}
 	if _, err = this.Kv.Put(context.TODO(), registerKey, workerData, clientv3.WithLease(leaseId)); err != nil {
@@ -104,17 +118,10 @@ func (this *Register) Register() (err error) {
 
 }
 
-func (this *Register) buildWorkerData(localIp string, workerFlag string) (workerData string, err error) {
+func (this *Register) buildWorkerData(worker *common.Worker) (workerData string, err error) {
 	var (
-		worker         common.Worker
 		workerJsonByte []byte
 	)
-	worker = common.Worker{
-		Name:      G_config.WorkerName,
-		Ip:        localIp,
-		StartTime: time.Now().Unix(),
-		Flag:      workerFlag,
-	}
 	//序列化
 	if workerJsonByte, err = json.Marshal(worker); err != nil {
 		return

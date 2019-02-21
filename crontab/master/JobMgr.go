@@ -66,7 +66,11 @@ func (this *JobMgr) SaveJob(job *common.Job) (oldJob *common.Job, err error) {
 		putRes    *clientv3.PutResponse
 		oldJobObj common.Job
 	)
+	if job.Group == "" {
+		job.Group = common.DEFAULT_WORKER_GROUP_NAME
+	}
 	jobKey = common.JOB_SAVE_DIR + job.Name
+	//序列化
 	if jobValue, err = json.Marshal(job); err != nil {
 		return
 	}
